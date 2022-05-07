@@ -14,7 +14,7 @@ namespace TelegramBotWebhook.Services
             {
                 BotCommand botCommand = BotCommandLibrary.GetCommandInstance(command);
 
-                if (botCommand.IsLongRunning)
+                if (botCommand is ILongRunningCommand)
                     runningCommand = botCommand;
                 
                 result = botCommand.Execute(String.Empty).Result;
@@ -28,15 +28,11 @@ namespace TelegramBotWebhook.Services
         public Task<ExecuteResult> HandleResponse(string response)
         {
             if (ExecuteIsOver())
-                throw new Exception("No running command to receive and handle response.");
+                throw new Exception("No running command to receive and handle a response.");
 
-            if (runningCommand!.IsLongRunning)
+            if (runningCommand is ILongRunningCommand longRunningCommand)
             {
-                var command = (ILongRunningCommand)runningCommand;
-                command.ExecuteIsOver += () =>
-                {
-                    runningCommand = null;
-                };
+                longRunningCommand.ExecuteIsOver += () => runningCommand = null;
             }
 
             ExecuteResult result = runningCommand!.Execute(response).Result;

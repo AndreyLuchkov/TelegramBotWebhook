@@ -11,14 +11,14 @@ namespace TelegramBotWebhook.Services
         private readonly ITelegramBotClient botClient;
         private readonly ILogger<UpdateHandleService> logger;
         private readonly ICommandExecuteService<ExecuteResult> executeService;
+        private readonly IMessageSendingService<ExecuteResult> messageSendingService;
 
-        private int lastMessageWithKeyboadrdId = -1;
-
-        public UpdateHandleService(ITelegramBotClient botClient, ILogger<UpdateHandleService> logger, ICommandExecuteService<ExecuteResult> executeService)
+        public UpdateHandleService(ITelegramBotClient botClient, ILogger<UpdateHandleService> logger, ICommandExecuteService<ExecuteResult> executeService, IMessageSendingService<ExecuteResult> messageSendingService)
         {
             this.botClient = botClient;
             this.logger = logger;
             this.executeService = executeService;
+            this.messageSendingService = messageSendingService;
         }
 
         public async Task HandleUpdateAsync(Update update)
@@ -52,53 +52,8 @@ namespace TelegramBotWebhook.Services
                 result = executeService.HandleResponse(messageText).Result;
             }
 
-            await HandlerDispatcher(update.Message, result);
-
+            Chat chat = new Chat(update.Message.Chat.Id);
+            await messageSendingService.SendMessage(chat, result);
         }
-
-        private async Task HandlerDispatcher(Message message, ExecuteResult result)
-        {
-            var handler = result.ResultType switch
-            {
-                ResultType.Text => SendTextMessage(message, result.Message!),
-                ResultType.Keyboard => SendMessageWithKeyboard(message, result.Message!, result.Values!),
-                ResultType.Empty => Task.CompletedTask,
-                ResultType.RemoveKeyboard => RemoveKeyboard(message),
-                _ => throw new Exception()
-            };
-            await handler;
-        } 
-        private async Task SendTextMessage(Message message, string text)
-        {
-            await botClient.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: text ?? "",
-                replyMarkup: new ReplyKeyboardRemove());
-        }
-        private async Task SendMessageWithKeyboard(Message message, string text, string[] values)
-        {
-            var buttons = values.Select((text) => new KeyboardButton(text));
-
-            var replyKeyboardMarkup = new ReplyKeyboardMarkup(buttons!.Split(2))
-            {
-                ResizeKeyboard = true
-            };
-
-            var sentMessage = await botClient.SendTextMessageAsync(
-            chatId: message.Chat.Id,
-            text: text,
-            replyMarkup: replyKeyboardMarkup);
-
-            lastMessageWithKeyboadrdId = sentMessage.MessageId;
-        }
-        private async Task RemoveKeyboard(Message message)
-        {
-            if (lastMessageWithKeyboadrdId != -1)
-            {
-                await botClient.EditMessageReplyMarkupAsync(
-                    chatId: message.Chat.Id,
-                    messageId: lastMessageWithKeyboadrdId);
-            }
-        } 
     }
 }

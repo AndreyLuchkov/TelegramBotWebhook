@@ -1,26 +1,26 @@
-﻿namespace TelegramBotWebhook.Command.BotCommand
+﻿using System.Text;
+
+namespace TelegramBotWebhook.Command.BotCommand
 {
     internal class HelpCommand : BotCommand
     {
-        public HelpCommand() : base(
-            text: "help",
-            isLongRunning: false) { }
-        
+        public HelpCommand() : base("help") { }
+
         public override object Clone() => new HelpCommand();
         
         public override Task<ExecuteResult> Execute(string _)
         {
-            var result = new ExecuteResult(ResultType.Text, "List of commands: \n");
+            var resultMessage = new StringBuilder("List of commands: \n");
 
             string[] commandsNames = BotCommandLibrary.GetAllCommandNames()
                 .Where((name) => name != "/help" && name != "/start").ToArray();
-
+            
             foreach (var commandName in commandsNames)
             {
-                result.Message += commandName + '\n';
+                resultMessage.AppendLine(commandName);
             }
-
-            return Task.FromResult(result);
+            
+            return Task.FromResult(new ExecuteResult(ResultType.Text, resultMessage));
         }
     }
 }

@@ -1,27 +1,27 @@
-﻿namespace TelegramBotWebhook.Command.BotCommand
+﻿using System.Text;
+
+namespace TelegramBotWebhook.Command.BotCommand
 {
     public class StartCommand : BotCommand
     {
-        public StartCommand() : base(
-            text: "start",
-            isLongRunning: false) { }
+        public StartCommand() : base("start") { }
 
         public override object Clone() => new StartCommand();
 
         public override Task<ExecuteResult> Execute(string _)
         {
-            var result = new ExecuteResult(ResultType.Text, "You can control me by sending this commands: \n");
+            StringBuilder resultMessage = new StringBuilder("You can control me by sending these commands: \n");
 
             string[] commandsNames = BotCommandLibrary.GetAllCommandNames()
                 .Where((name) => name != "/help" && name != "/start").ToArray();
 
             foreach (var commandName in commandsNames)
             {
-                result.Message += commandName + '\n';
+                resultMessage.AppendLine(commandName);
             }
-            result.Message += "\nUse /help to get the list of commands.";
+            resultMessage.Append("\nUse /help to get the list of commands.");
 
-            return Task.FromResult(result);
+            return Task.FromResult(new ExecuteResult(ResultType.Text, resultMessage));
         }
     }
 }

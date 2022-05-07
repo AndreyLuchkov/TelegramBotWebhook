@@ -18,7 +18,7 @@
             }
             catch (KeyNotFoundException)
             {
-                throw new ArgumentException("Command not found in the library.");
+                throw new ArgumentException($"The command {command} not found in the library.");
             }
         }
         static public string[] GetAllCommandNames() => library.Keys.ToArray();

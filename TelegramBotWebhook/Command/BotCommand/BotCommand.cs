@@ -4,12 +4,10 @@
     {
         public string? Text { get; }
         public string Prefix { get; } = "/";
-        public bool IsLongRunning { get; }
 
-        protected BotCommand(string? text, bool isLongRunning)
+        protected BotCommand(string? text)
         {
             Text = text?.TrimStart('/');
-            IsLongRunning = isLongRunning;
         }
 
         public abstract Task<ExecuteResult> Execute(string option);

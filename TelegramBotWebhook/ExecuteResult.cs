@@ -1,4 +1,6 @@
-﻿namespace TelegramBotWebhook
+﻿using System.Text;
+
+namespace TelegramBotWebhook
 {
     public enum ResultType
     {
@@ -20,6 +22,10 @@
         public ExecuteResult(ResultType resultType, string? message) : this(resultType)
         {
             Message = message;
+        }
+        public ExecuteResult(ResultType resultType, StringBuilder? message) : this(resultType)
+        {
+            Message = message?.ToString();
         }
         public ExecuteResult(ResultType resultType, string? message, string[]? values) : this(resultType, message)
         {

@@ -41,6 +41,8 @@ namespace TelegramBotWebhook
                 .AddTypedClient<ITelegramBotClient>(httpClient
                     => new TelegramBotClient(BotConfig.Token, httpClient));
 
+            services.AddSingleton<IMessageSendingService<ExecuteResult>, TelegramMessageSendingService>();
+
             services.AddSingleton<ICommandExecuteService<ExecuteResult>, BotCommandExecuteService>();
 
             services.AddScoped<UpdateHandleService>();

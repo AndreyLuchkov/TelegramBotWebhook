@@ -13,10 +13,7 @@ namespace TelegramBotWebhook.Command.BotCommand
 
         public event Action? ExecuteIsOver;
 
-        public CloseCommand() : base(
-            text: "close",
-            isLongRunning: true)
-        { }
+        public CloseCommand() : base("close") { }
 
         public override object Clone() => new CloseCommand();
         public override async Task<ExecuteResult> Execute(string option)
