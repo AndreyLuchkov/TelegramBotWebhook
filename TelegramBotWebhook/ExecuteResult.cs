@@ -7,6 +7,7 @@ namespace TelegramBotWebhook
         Empty,
         Text,
         Keyboard,
+        InlineKeyboarUrl,
         RemoveKeyboard,
     }
     public class ExecuteResult
@@ -29,6 +30,11 @@ namespace TelegramBotWebhook
         }
         public ExecuteResult(ResultType resultType, string? message, string[]? values) : this(resultType, message)
         {
+            Values = values;
+        }
+        public ExecuteResult(ResultType resultType, StringBuilder? message, string[]? values) : this(resultType)
+        {
+            Message = message?.ToString();
             Values = values;
         }
     }

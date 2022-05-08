@@ -10,7 +10,7 @@ namespace TelegramBotWebhook.Command.BotCommand
         
         public override Task<ExecuteResult> Execute(string _)
         {
-            var resultMessage = new StringBuilder("List of commands: \n");
+            var resultMessage = new StringBuilder("The list of commands: \n");
 
             string[] commandsNames = BotCommandLibrary.GetAllCommandNames()
                 .Where((name) => name != "/help" && name != "/start").ToArray();

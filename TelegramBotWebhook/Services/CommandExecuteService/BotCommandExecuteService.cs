@@ -5,7 +5,13 @@ namespace TelegramBotWebhook.Services
 {
     public class BotCommandExecuteService : ICommandExecuteService<ExecuteResult>
     {
+        IServiceProvider services;
         private BotCommand? runningCommand;
+
+        public BotCommandExecuteService(IServiceProvider services)
+        {
+            this.services = services;
+        }
 
         public Task<ExecuteResult> ExecuteCommand(string command)
         {
@@ -14,8 +20,15 @@ namespace TelegramBotWebhook.Services
             {
                 BotCommand botCommand = BotCommandLibrary.GetCommandInstance(command);
 
-                if (botCommand is ILongRunningCommand)
+                if (botCommand is ILongRunning)
                     runningCommand = botCommand;
+                if (botCommand is IServiceRequired serviceRequiredCommand)
+                {
+                    foreach (var serviceType in serviceRequiredCommand.RequiredServicesTypes)
+                    {
+                        serviceRequiredCommand.Services.Add(services.GetRequiredService(serviceType));
+                    }
+                }
                 
                 result = botCommand.Execute(String.Empty).Result;
             }
@@ -30,7 +43,7 @@ namespace TelegramBotWebhook.Services
             if (ExecuteIsOver())
                 throw new Exception("No running command to receive and handle a response.");
 
-            if (runningCommand is ILongRunningCommand longRunningCommand)
+            if (runningCommand is ILongRunning longRunningCommand)
             {
                 longRunningCommand.ExecuteIsOver += () => runningCommand = null;
             }

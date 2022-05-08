@@ -1,5 +1,7 @@
 ﻿using Telegram.Bot;
 using TelegramBotWebhook.Services;
+using TelegramBotWebhook.Web;
+using TelegramBotWebhook.Web.HttpFactories;
 
 namespace TelegramBotWebhook
 {
@@ -36,10 +38,17 @@ namespace TelegramBotWebhook
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddHostedService<ConfigureWebHook>();
-            
+
+            services.AddHttpClient("MPEIEmail")
+                .AddTypedClient<IPollingClient, MPEIEmailPollingClient>();
+
             services.AddHttpClient("tgwebhook")
                 .AddTypedClient<ITelegramBotClient>(httpClient
                     => new TelegramBotClient(BotConfig.Token, httpClient));
+
+            services.AddSingleton<IHttpFactory, LoginHttpFactory>();
+
+            services.AddSingleton<IEmailReadService, MPEIEmailReadService>();
 
             services.AddSingleton<IMessageSendingService<ExecuteResult>, TelegramMessageSendingService>();
 

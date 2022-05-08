@@ -7,6 +7,7 @@
             ["/help"] = new HelpCommand(),
             ["/close"] = new CloseCommand(),
             ["/start"] = new StartCommand(),
+            ["/unread"] = new UnreadCommand(),
         };
 
         static public bool CommandExists(string command) => library.ContainsKey(command);

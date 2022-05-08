@@ -22,6 +22,7 @@ namespace TelegramBotWebhook.Services
                 ResultType.Text => SendTextMessage(chat.Id, options.Message!),
                 ResultType.Keyboard => SendMessageWithKeyboard(chat.Id, options.Message!, options.Values!),
                 ResultType.Empty => Task.CompletedTask,
+                ResultType.InlineKeyboarUrl => SendMessageWithInlineKeyboardUrl(chat.Id, options.Message!, options.Values!),
                 ResultType.RemoveKeyboard => RemoveKeyboard(chat.Id),
                 _ => throw new Exception()
             };
@@ -49,6 +50,20 @@ namespace TelegramBotWebhook.Services
             replyMarkup: replyKeyboardMarkup);
 
             lastMessageWithKeyboadrdId = sentMessage.MessageId;
+        }
+        private async Task SendMessageWithInlineKeyboardUrl(long chatId, string text, string[] values)
+        {
+            InlineKeyboardMarkup inlineKeyboard = new(new[]
+            {
+                InlineKeyboardButton.WithUrl(
+                    text: values[0],
+                    url: values[1])
+            });
+
+            await botClient.SendTextMessageAsync(
+                chatId: chatId,
+                text: text,
+                replyMarkup: inlineKeyboard);
         }
         private async Task RemoveKeyboard(long chatId)
         {

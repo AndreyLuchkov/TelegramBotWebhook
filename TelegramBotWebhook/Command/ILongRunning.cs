@@ -1,6 +1,6 @@
 ﻿namespace TelegramBotWebhook.Command
 {
-    public interface ILongRunningCommand
+    public interface ILongRunning
     {
         public event Action? ExecuteIsOver; 
     }
