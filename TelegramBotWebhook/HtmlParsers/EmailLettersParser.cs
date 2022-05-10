@@ -64,7 +64,6 @@ namespace TelegramBotWebhook.HtmlParser
                 };
                 letters.Add(letter);
             }
-            htmlDocument.Dispose();
             return letters;
         }
     }

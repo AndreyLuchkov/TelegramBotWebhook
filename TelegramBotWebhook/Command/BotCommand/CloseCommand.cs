@@ -4,18 +4,20 @@ namespace TelegramBotWebhook.Command.BotCommand
 {
     internal class CloseCommand : BotCommand, ILongRunning
     {
-        static private Dictionary<string, string> allowedProcessesToClose = new Dictionary<string, string>
-        {
-            ["CiscoCollabHost"] = "Cisco Desktop",
-            ["atmgr"] = "Cisco Web",
-        };
+        private Dictionary<string, string> _allowedProcessesToClose;
         string? processToCloseName;
 
         public event Action? ExecuteIsOver;
 
-        public CloseCommand() : base("close") { }
+        public CloseCommand() : base("close") 
+        {
+            _allowedProcessesToClose = new Dictionary<string, string>
+            {
+                ["CiscoCollabHost"] = "Cisco Desktop",
+                ["atmgr"] = "Cisco Web",
+            };
+        }
 
-        public override object Clone() => new CloseCommand();
         public override async Task<ExecuteResult> Execute(string option)
         {
             if (option == String.Empty)
@@ -33,9 +35,9 @@ namespace TelegramBotWebhook.Command.BotCommand
             }
             else if (option != String.Empty && processToCloseName is null)
             {
-                if (allowedProcessesToClose.ContainsValue(option))
+                if (_allowedProcessesToClose.ContainsValue(option))
                 {
-                    processToCloseName = allowedProcessesToClose.Where((pair) => pair.Value == option)
+                    processToCloseName = _allowedProcessesToClose.Where((pair) => pair.Value == option)
                                                                     .Select((pair) => pair.Key).First();
                     return new ExecuteResult(ResultType.Keyboard, $"Do you really want to close the process {option}?", new string[] { "Yes", "No" });
                 }
@@ -53,13 +55,13 @@ namespace TelegramBotWebhook.Command.BotCommand
                     if (processes.Length == 0)
                     {
                         ExecuteIsOver?.Invoke();
-                        return new ExecuteResult(ResultType.Text, $"The process {allowedProcessesToClose[processToCloseName!]} has already closed.");
+                        return new ExecuteResult(ResultType.Text, $"The process {_allowedProcessesToClose[processToCloseName!]} has already closed.");
                     }
                     else
                     {
                         await KillAllProcesses(processes);
                         ExecuteIsOver?.Invoke();
-                        return new ExecuteResult(ResultType.Text, $"The process {allowedProcessesToClose[processToCloseName!]} has closed.");
+                        return new ExecuteResult(ResultType.Text, $"The process {_allowedProcessesToClose[processToCloseName!]} has closed.");
                     }
                 } 
                 else
@@ -73,8 +75,8 @@ namespace TelegramBotWebhook.Command.BotCommand
         {
             var currentProcesses = Process.GetProcesses().AsParallel()
                 .Select((process) => process.ProcessName).Distinct()
-                    .Where((processName) => allowedProcessesToClose.ContainsKey(processName))
-                        .Select((processName) => allowedProcessesToClose[processName]).ToArray();
+                    .Where((processName) => _allowedProcessesToClose.ContainsKey(processName))
+                        .Select((processName) => _allowedProcessesToClose[processName]).ToArray();
 
             return currentProcesses.Length == 0 ? Array.Empty<string>() : currentProcesses;
         }

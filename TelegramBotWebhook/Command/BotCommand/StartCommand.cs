@@ -6,13 +6,12 @@ namespace TelegramBotWebhook.Command.BotCommand
     {
         public StartCommand() : base("start") { }
 
-        public override object Clone() => new StartCommand();
-
         public override Task<ExecuteResult> Execute(string _)
         {
             StringBuilder resultMessage = new StringBuilder("You can control me by sending these commands: \n");
 
-            string[] commandsNames = BotCommandLibrary.GetAllCommandNames()
+            BotCommandLibrary library = new BotCommandLibrary();
+            string[] commandsNames = library.GetAllCommandNames()
                 .Where((name) => name != "/help" && name != "/start").ToArray();
 
             foreach (var commandName in commandsNames)

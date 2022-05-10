@@ -3,6 +3,6 @@
     public interface IServiceRequired
     {
         IEnumerable<Type> RequiredServicesTypes { get; }
-        List<object> Services { get; }
+        public void AddService(object service);
     }
 }

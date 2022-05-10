@@ -1,7 +1,9 @@
-﻿namespace TelegramBotWebhook.Services
+﻿using TelegramBotWebhook.MPEIEmail.EmailEntities;
+
+namespace TelegramBotWebhook.Services
 {
     public interface IEmailReadService
     {
-        public Task<DirectoryInfo> ReadLetters();
+        public Task<IEnumerable<Letter>> ReadLetters();
     }
 }

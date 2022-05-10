@@ -2,7 +2,7 @@
 {
     public class Session
     {
-        static Session? session;
+        private static Session? session;
         public string? CookieKey1 { get; set; }
         public string? CookieKey2 { get; set; }
         public string? UserKey { get; set; }

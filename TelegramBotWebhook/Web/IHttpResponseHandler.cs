@@ -1,7 +1,9 @@
-﻿namespace TelegramBotWebhook.Web
+﻿using AngleSharp.Html.Dom;
+
+namespace TelegramBotWebhook.Web
 {
     public interface IHttpResponseHandler
     {
-        public Task<DirectoryInfo> HandleResponse(HttpResponseMessage response);
+        public Task<IHtmlDocument> HandleResponse(HttpResponseMessage response);
     }
 }

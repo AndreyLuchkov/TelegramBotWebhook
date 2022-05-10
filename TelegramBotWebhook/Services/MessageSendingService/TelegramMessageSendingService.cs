@@ -1,4 +1,5 @@
 ﻿using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBotWebhook.Extensions;
 
@@ -8,7 +9,7 @@ namespace TelegramBotWebhook.Services
     {
         private readonly ITelegramBotClient botClient;
 
-        private int lastMessageWithKeyboadrdId = -1;
+        private Message? lastMessageWithKeyboadrd;
 
         public TelegramMessageSendingService(ITelegramBotClient botClient)
         {
@@ -44,12 +45,10 @@ namespace TelegramBotWebhook.Services
                 ResizeKeyboard = true
             };
 
-            var sentMessage = await botClient.SendTextMessageAsync(
+            lastMessageWithKeyboadrd = await botClient.SendTextMessageAsync(
             chatId: chatId,
             text: text,
             replyMarkup: replyKeyboardMarkup);
-
-            lastMessageWithKeyboadrdId = sentMessage.MessageId;
         }
         private async Task SendMessageWithInlineKeyboardUrl(long chatId, string text, string[] values)
         {
@@ -67,11 +66,11 @@ namespace TelegramBotWebhook.Services
         }
         private async Task RemoveKeyboard(long chatId)
         {
-            if (lastMessageWithKeyboadrdId != -1)
+            if (lastMessageWithKeyboadrd is not null)
             {
                 await botClient.EditMessageReplyMarkupAsync(
                     chatId: chatId,
-                    messageId: lastMessageWithKeyboadrdId);
+                    messageId: lastMessageWithKeyboadrd.MessageId);
             }
         }
     }

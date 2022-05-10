@@ -1,6 +1,6 @@
 ﻿namespace TelegramBotWebhook.Command.BotCommand
 {
-    public abstract class BotCommand : ICommand<string, ExecuteResult>, ICloneable
+    public abstract class BotCommand : ICommand<string, ExecuteResult>
     {
         public string? Text { get; }
         public string Prefix { get; } = "/";
@@ -11,6 +11,5 @@
         }
 
         public abstract Task<ExecuteResult> Execute(string option);
-        public abstract object Clone();
     }
 }

@@ -1,56 +1,51 @@
-﻿using TelegramBotWebhook.Services;
-using TelegramBotWebhook.HtmlParser;
-using TelegramBotWebhook.MPEIEmail.EmailEntities;
-
-using AngleSharp;
-using System.Text;
-using AngleSharp.Html.Dom;
+﻿using System.Text;
+using TelegramBotWebhook.Services;
 using TelegramBot.Web.MPEIEmail;
+using TelegramBotWebhook.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.Command.BotCommand
 {
     public class UnreadCommand : BotCommand, IServiceRequired
     {
-        public IEnumerable<Type> RequiredServicesTypes => new Type[1] { typeof(IEmailReadService) };
-        public List<object> Services { get; } = new List<object>(1);
+        private List<object> _services;
+        public IEnumerable<Type> RequiredServicesTypes { get; }
 
-        public UnreadCommand() : base("/unread") { }
-
-        public override object Clone() => new UnreadCommand();
-        public override async Task<ExecuteResult> Execute(string option)
+        public UnreadCommand() : base("/unread") 
+        { 
+            RequiredServicesTypes = new Type[1] { typeof(IEmailReadService) };
+            _services = new List<object>(1);
+        }
+       
+        public void AddService(object service)
         {
-            var emailReadService = (IEmailReadService)Services.First();
-            DirectoryInfo lettersDirectory = await emailReadService.ReadLetters();
+            if (_services.Count() == 0)
+            {
+                _services.Add(service);
+            }
+        }
+        public override Task<ExecuteResult> Execute(string option)
+        {
+            var emailReadService = (IEmailReadService)_services.First();
+            
+            var letters = emailReadService.ReadLetters().Result.Where((letter) => !letter.IsRead);
 
-            var parser = new EmailLettersParser();
-            List<Letter> letters = parser.Parse(await GetLettersHtmlFileFromDirectory(lettersDirectory));
-
-            var resultLetters = letters.Where((letter) => !letter.IsRead);
-
-            if (resultLetters.Count() > 0)
+            if (letters.Count() > 0)
             {
                 StringBuilder resultMessage = new StringBuilder("The list of your unread letters: \n");
-                resultMessage.Append(LettersInfoToString(resultLetters));
+                resultMessage.Append(LettersToString(letters));
 
                 Session session = Session.Instance();
-                return new ExecuteResult(ResultType.InlineKeyboarUrl, resultMessage, new string[] { "Link to the MPEI Email", $"https://legacy.mpei.ru/CookieAuth.dll?Logon?curl=Z2Fowa&flags=0&forcedownlevel=0&formdir=2&username={session.Login}&password={session.Password}&isUtf8=1&trusted=4" });
+
+                var result = new ExecuteResult(ResultType.InlineKeyboarUrl, resultMessage, new string[] { "Link to the MPEI Email", $"https://legacy.mpei.ru/CookieAuth.dll?Logon?curl=Z2Fowa&flags=0&forcedownlevel=0&formdir=2&username={session.Login}&password={session.Password}&isUtf8=1&trusted=4" });
+
+                return Task.FromResult(result);
             }
             else
             {
-                return new ExecuteResult(ResultType.Text, "Unread letters not found.");
+                return Task.FromResult(new ExecuteResult(ResultType.Text, "Unread letters not found."));
             }
         }
-        private async Task<IHtmlDocument> GetLettersHtmlFileFromDirectory(DirectoryInfo directory)
-        {
-            var html = File.ReadAllText(directory.FullName + @"\Page 1.html");
-
-            var config = Configuration.Default;
-            var context = BrowsingContext.New(config);
-            var doc = await context.OpenAsync(req => req.Content(html));
-
-            return (IHtmlDocument)doc;
-        }
-        private StringBuilder LettersInfoToString(IEnumerable<Letter> letters)
+        private StringBuilder LettersToString(IEnumerable<Letter> letters)
         {
             StringBuilder lettersInfo = new StringBuilder();
 

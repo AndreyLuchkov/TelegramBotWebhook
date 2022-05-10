@@ -8,14 +8,12 @@ namespace TelegramBotWebhook.Services
 {
     public class UpdateHandleService 
     {
-        private readonly ITelegramBotClient botClient;
         private readonly ILogger<UpdateHandleService> logger;
         private readonly ICommandExecuteService<ExecuteResult> executeService;
         private readonly IMessageSendingService<ExecuteResult> messageSendingService;
 
-        public UpdateHandleService(ITelegramBotClient botClient, ILogger<UpdateHandleService> logger, ICommandExecuteService<ExecuteResult> executeService, IMessageSendingService<ExecuteResult> messageSendingService)
+        public UpdateHandleService(ILogger<UpdateHandleService> logger, ICommandExecuteService<ExecuteResult> executeService, IMessageSendingService<ExecuteResult> messageSendingService)
         {
-            this.botClient = botClient;
             this.logger = logger;
             this.executeService = executeService;
             this.messageSendingService = messageSendingService;

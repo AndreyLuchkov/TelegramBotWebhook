@@ -5,28 +5,30 @@ namespace TelegramBotWebhook.Services
 {
     public class BotCommandExecuteService : ICommandExecuteService<ExecuteResult>
     {
-        IServiceProvider services;
-        private BotCommand? runningCommand;
+        IServiceProvider _services;
+        BotCommandLibrary _library;
+        private BotCommand? _runningCommand;
 
         public BotCommandExecuteService(IServiceProvider services)
         {
-            this.services = services;
+            _services = services;
+            _library = new BotCommandLibrary();
         }
 
         public Task<ExecuteResult> ExecuteCommand(string command)
         {
             ExecuteResult result;
-            if (BotCommandLibrary.CommandExists(command))
+            if (_library.CommandExists(command))
             {
-                BotCommand botCommand = BotCommandLibrary.GetCommandInstance(command);
+                BotCommand botCommand = _library.GetCommandInstance(command);
 
                 if (botCommand is ILongRunning)
-                    runningCommand = botCommand;
+                    _runningCommand = botCommand;
                 if (botCommand is IServiceRequired serviceRequiredCommand)
                 {
                     foreach (var serviceType in serviceRequiredCommand.RequiredServicesTypes)
                     {
-                        serviceRequiredCommand.Services.Add(services.GetRequiredService(serviceType));
+                        serviceRequiredCommand.AddService(_services.GetRequiredService(serviceType));
                     }
                 }
                 
@@ -43,14 +45,25 @@ namespace TelegramBotWebhook.Services
             if (ExecuteIsOver())
                 throw new Exception("No running command to receive and handle a response.");
 
-            if (runningCommand is ILongRunning longRunningCommand)
-            {
-                longRunningCommand.ExecuteIsOver += () => runningCommand = null;
-            }
+            var longRunningCommand = _runningCommand as ILongRunning;
 
-            ExecuteResult result = runningCommand!.Execute(response).Result;
+            ExecuteResult result;
+            if (longRunningCommand is not null)
+            {
+                longRunningCommand.ExecuteIsOver += SetNullToRunningCommand;
+
+                result = _runningCommand!.Execute(response).Result;
+
+                longRunningCommand.ExecuteIsOver -= SetNullToRunningCommand;
+            }
+            else
+            {
+                result = _runningCommand!.Execute(response).Result;
+            }
+            
             return Task.FromResult(result);
         }
-        public bool ExecuteIsOver() => runningCommand is null;
+        public bool ExecuteIsOver() => _runningCommand is null;
+        private void SetNullToRunningCommand() => _runningCommand = null;
     }
 }
