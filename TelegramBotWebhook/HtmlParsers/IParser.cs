@@ -1,6 +1,6 @@
 ﻿using AngleSharp.Html.Dom;
 
-namespace TelegramBotWebhook.HtmlParser
+namespace TelegramBotWebhook.HtmlParsers
 {
     public interface IParser<T> where T: class
     {

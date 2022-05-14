@@ -1,50 +1,68 @@
 ﻿using TelegramBotWebhook.Web.HttpFactories;
 using TelegramBotWebhook.Extensions;
 using TelegramBotWebhook.MPEIEmail.EmailEntities;
-using TelegramBotWebhook.HtmlParser;
+using TelegramBotWebhook.HtmlParsers;
 using AngleSharp.Html.Dom;
+using TelegramBot.Web.MPEIEmail;
 
 namespace TelegramBotWebhook.Services
 {
     public class MPEIEmailReadService : IEmailReadService
     {
-        private readonly IHttpFactory httpFactory;
-        private readonly EmailProfileConfiguration emailProfile;
+        private readonly IHttpFactory _loginHttpFactory;
+        private readonly IHttpFactory _emailPageHttpFactory;
 
-        public MPEIEmailReadService(IHttpFactory httpFactory, Microsoft.Extensions.Configuration.IConfiguration configuration)
+        public MPEIEmailReadService(IEnumerable<IHttpFactory> httpFactories)
         {
-            this.httpFactory = httpFactory;
-            emailProfile = configuration.GetSection("EmailProfileConfig").Get<EmailProfileConfiguration>();
+            _loginHttpFactory = httpFactories.Where((factory) => factory is LoginHttpFactory).First();
+            _emailPageHttpFactory = httpFactories.Where((factory) => factory is EmailPageHttpFactory).First();
         }
 
-        public async Task<IEnumerable<Letter>> ReadLetters()
+        public async Task<IEnumerable<LetterRecord>> GetLetters(Session session)
         {
-            var response = await GetResponseFromEmail();
-            if (response is null)
+            Task<IHtmlDocument> response;
+            if (session.UserKey is null)
             {
-                return Array.Empty<Letter>();
+                response = GetLoginResponseFromEmail(session.UserId);
             }
             else
             {
-                var letterParser = new EmailLettersParser();
-
-                List<Letter> letters = letterParser.Parse(response);
-                response.Dispose();
-
-                return letters;
+                response = GetEmailPageResponse(session.UserId);
             }
+           
+            var letterParser = new LetterRecordsPageParser();
+
+            IEnumerable<LetterRecord> letters = letterParser.Parse(await response);
+
+            return letters;
         }
-        private async Task<IHtmlDocument> GetResponseFromEmail()
+        private async Task<IHtmlDocument> GetLoginResponseFromEmail(long userId)
         {
-            var request = httpFactory.GetRequest();
-            var responseHandler = httpFactory.GetResponseHandler();
+            var request = _loginHttpFactory.GetRequest();
 
             var options = new HttpRequestOptions();
-            options.GetLoginOptions(emailProfile.Login, emailProfile.Password);
+            options.GetLoginOptions(userId);
 
-            var response = await request.Send(options);
+            var response = request.Send(options);
 
-            return await responseHandler.HandleResponse(response);
+            var responseHandler = _loginHttpFactory.GetResponseHandler();
+
+            return await responseHandler.HandleResponse(await response);
+        }
+        private async Task<IHtmlDocument> GetEmailPageResponse(long userId)
+        {
+            var request = _emailPageHttpFactory.GetRequest();
+
+            var options = new HttpRequestOptions();
+            options.GetEmailPageOptions(
+                userId,
+                pageNumber: 1);
+
+            var response = request.Send(options);
+
+            var responseHandler = _emailPageHttpFactory.GetResponseHandler();
+
+            return await responseHandler.HandleResponse(await response);
         }
     }
 }

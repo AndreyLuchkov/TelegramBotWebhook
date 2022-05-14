@@ -1,20 +1,23 @@
-﻿namespace TelegramBot.Web.MPEIEmail
+﻿using System.Collections.Concurrent;
+
+namespace TelegramBot.Web.MPEIEmail
 {
-    public class Session
+    public sealed class Session
     {
-        private static Session? session;
-        public string? CookieKey1 { get; set; }
-        public string? CookieKey2 { get; set; }
+        private static ConcurrentDictionary<long, Session> _sessions = new ConcurrentDictionary<long, Session>();
+        public long UserId { get; }
         public string? UserKey { get; set; }
         public string? Login { get; set; }
         public string? Password { get; set; }
-        
-        protected Session() { }
-        public static Session Instance()
+
+        private Session(long userId) 
         {
-            if (session is null)
-                session = new Session();
-            return session;
+            UserId = userId;
+        }
+
+        public static Session GetInstance(long userId)
+        {
+            return _sessions.GetOrAdd(userId, (userId) => new Session(userId));
         }
     }
 }

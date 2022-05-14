@@ -4,15 +4,15 @@ namespace TelegramBotWebhook.Command.BotCommand
 {
     internal class HelpCommand : BotCommand
     {
-        public HelpCommand() : base("help") { }
+        internal HelpCommand() : base("/help") { }
         
         public override Task<ExecuteResult> Execute(string _)
         {
-            var resultMessage = new StringBuilder("The list of commands: \n");
+            var resultMessage = new StringBuilder("Список команд: \n");
 
             BotCommandLibrary library = new BotCommandLibrary();
-            string[] commandsNames = library.GetAllCommandNames()
-                .Where((name) => name != "/help" && name != "/start").ToArray();
+            var commandsNames = library.GetAllCommandNames()
+                .Where((name) => name != "/help" && name != "/start");
             
             foreach (var commandName in commandsNames)
             {

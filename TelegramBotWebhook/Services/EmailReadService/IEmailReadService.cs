@@ -1,9 +1,10 @@
-﻿using TelegramBotWebhook.MPEIEmail.EmailEntities;
+﻿using TelegramBot.Web.MPEIEmail;
+using TelegramBotWebhook.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.Services
 {
     public interface IEmailReadService
     {
-        public Task<IEnumerable<Letter>> ReadLetters();
+        public Task<IEnumerable<LetterRecord>> GetLetters(Session session);
     }
 }

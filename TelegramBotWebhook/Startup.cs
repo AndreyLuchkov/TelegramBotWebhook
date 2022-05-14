@@ -1,4 +1,5 @@
 ﻿using Telegram.Bot;
+using TelegramBotWebhook.MPEIEmail.EmailEntities;
 using TelegramBotWebhook.Services;
 using TelegramBotWebhook.Web;
 using TelegramBotWebhook.Web.HttpFactories;
@@ -46,13 +47,19 @@ namespace TelegramBotWebhook
                 .AddTypedClient<ITelegramBotClient>(httpClient
                     => new TelegramBotClient(BotConfig.Token, httpClient));
 
-            services.AddScoped<IHttpFactory, LoginHttpFactory>();
+            services.AddScoped<ISessionService, MPEIEmailSessionService>();
 
-            services.AddScoped<IEmailReadService, MPEIEmailReadService>();
+            services.AddSingleton<IHttpFactory, LoginHttpFactory>();
+            services.AddSingleton<IHttpFactory, LetterContentHttpFactory>();
+            services.AddSingleton<IHttpFactory, EmailPageHttpFactory>();
+
+            services.AddTransient<IEmailReadService, MPEIEmailReadService>();
+
+            services.AddTransient<IEmailLetterReadService<LessonLetter>, LessonLetterReadService>();
 
             services.AddSingleton<IMessageSendingService<ExecuteResult>, TelegramMessageSendingService>();
 
-            services.AddScoped<ICommandExecuteService<ExecuteResult>, BotCommandExecuteService>();
+            services.AddSingleton<ICommandExecuteService<ExecuteResult>, BotCommandExecuteService>();
 
             services.AddScoped<UpdateHandleService>();
 

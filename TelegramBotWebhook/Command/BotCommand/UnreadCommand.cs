@@ -5,12 +5,13 @@ using TelegramBotWebhook.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.Command.BotCommand
 {
-    public class UnreadCommand : BotCommand, IServiceRequired
+    internal class UnreadCommand : BotCommand, IServiceRequired, ISessionDepended
     {
         private List<object> _services;
         public IEnumerable<Type> RequiredServicesTypes { get; }
+        public Session? Session { get; set; }
 
-        public UnreadCommand() : base("/unread") 
+        internal UnreadCommand() : base("/unread") 
         { 
             RequiredServicesTypes = new Type[1] { typeof(IEmailReadService) };
             _services = new List<object>(1);
@@ -19,40 +20,42 @@ namespace TelegramBotWebhook.Command.BotCommand
         public void AddService(object service)
         {
             if (_services.Count() == 0)
-            {
                 _services.Add(service);
-            }
         }
-        public override Task<ExecuteResult> Execute(string option)
+        public override async Task<ExecuteResult> Execute(string option)
         {
+            if (Session is null)
+                throw new InvalidOperationException("The session property is null.");
+            if (Session.Login is null || Session.Password is null)
+            {
+                return new ExecuteResult(ResultType.Text, "Для использования данной команды необходима аутентификация. Воспользуйтесь командой /login, чтобы иметь доступ к почте МЭИ.");
+            }
+
             var emailReadService = (IEmailReadService)_services.First();
-            
-            var letters = emailReadService.ReadLetters().Result.Where((letter) => !letter.IsRead);
+
+            var letters = (await emailReadService.GetLetters(Session))
+                .Where((letter) => !letter.IsRead);
 
             if (letters.Count() > 0)
             {
-                StringBuilder resultMessage = new StringBuilder("The list of your unread letters: \n");
+                StringBuilder resultMessage = new StringBuilder("Список непрочитанных писем: \n");
                 resultMessage.Append(LettersToString(letters));
 
-                Session session = Session.Instance();
-
-                var result = new ExecuteResult(ResultType.InlineKeyboarUrl, resultMessage, new string[] { "Link to the MPEI Email", $"https://legacy.mpei.ru/CookieAuth.dll?Logon?curl=Z2Fowa&flags=0&forcedownlevel=0&formdir=2&username={session.Login}&password={session.Password}&isUtf8=1&trusted=4" });
-
-                return Task.FromResult(result);
+                return new ExecuteResult(ResultType.InlineKeyboarUrl, resultMessage, new string[] { "Ссылка на почту МЭИ", $"https://legacy.mpei.ru/CookieAuth.dll?Logon?curl=Z2Fowa&flags=0&forcedownlevel=0&formdir=2&username={Session.Login}&password={Session.Password}&isUtf8=1&trusted=4" }); ;
             }
             else
             {
-                return Task.FromResult(new ExecuteResult(ResultType.Text, "Unread letters not found."));
+                return new ExecuteResult(ResultType.Text, "Непрочитанные письма не найдены.");
             }
         }
-        private StringBuilder LettersToString(IEnumerable<Letter> letters)
+        private StringBuilder LettersToString(IEnumerable<LetterRecord> letters)
         {
             StringBuilder lettersInfo = new StringBuilder();
 
             foreach (var letter in letters)
             {
-                lettersInfo.AppendLine(Letter.FromTrimDots(letter.From));
-                lettersInfo.AppendLine($"{letter.Theme} \n{letter.ReceivingTime.ToString("g")}\n");
+                lettersInfo.AppendLine(LetterRecord.FromTrimDots(letter.From))
+                    .AppendLine($"{letter.Theme} \n{letter.ReceivingTime.ToString("g")}\n");
             }
 
             return lettersInfo;

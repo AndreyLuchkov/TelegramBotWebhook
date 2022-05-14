@@ -1,22 +1,20 @@
-﻿using Telegram.Bot;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
-using TelegramBotWebhook.Extensions;
+using TelegramBot.Web.MPEIEmail;
 
 namespace TelegramBotWebhook.Services
 {
     public class UpdateHandleService 
     {
-        private readonly ILogger<UpdateHandleService> logger;
-        private readonly ICommandExecuteService<ExecuteResult> executeService;
-        private readonly IMessageSendingService<ExecuteResult> messageSendingService;
+        private readonly ILogger<UpdateHandleService> _logger;
+        private readonly ICommandExecuteService<ExecuteResult> _executeService;
+        private readonly IMessageSendingService<ExecuteResult> _messageSendingService;
 
         public UpdateHandleService(ILogger<UpdateHandleService> logger, ICommandExecuteService<ExecuteResult> executeService, IMessageSendingService<ExecuteResult> messageSendingService)
         {
-            this.logger = logger;
-            this.executeService = executeService;
-            this.messageSendingService = messageSendingService;
+            _logger = logger;
+            _executeService = executeService;
+            _messageSendingService = messageSendingService;
         }
 
         public async Task HandleUpdateAsync(Update update)
@@ -26,7 +24,7 @@ namespace TelegramBotWebhook.Services
 
             if (update.Message.Type != MessageType.Text)
             {
-                logger.LogInformation($"Get a not text message from {user.FirstName} {user.LastName}(ID:{user.Id}) {update.Message.Date}.");
+                _logger.LogInformation($"Get a not text message from {user.FirstName} {user.LastName}(ID:{user.Id}) {update.Message.Date}.");
                 return;
             }
 
@@ -35,23 +33,25 @@ namespace TelegramBotWebhook.Services
             ExecuteResult result;
             if (splitedText.First().Contains('/') && splitedText.Count() == 1)
             {
-                logger.LogInformation($"Get the command {splitedText.First()} from {user.FirstName} {user.LastName}(ID:{user.Id}) {update.Message.Date}.");
+                string command = splitedText.First();
 
-                result = executeService.ExecuteCommand(splitedText.First()).Result;
+                _logger.LogInformation($"Get the command {command} from {user.FirstName} {user.LastName}(ID:{user.Id}) {update.Message.Date}.");
+
+                result = _executeService.ExecuteCommand(command, user.Id).Result;
             }
-            else if (executeService.ExecuteIsOver())
+            else if (_executeService.ExecuteIsOver())
             {
-                logger.LogInformation($"Get a text message from {user.FirstName} {user.LastName}(ID:{user.Id}) {update.Message.Date}.");
+                _logger.LogInformation($"Get a text message from {user.FirstName} {user.LastName}(ID:{user.Id}) {update.Message.Date}.");
 
-                result = executeService.ExecuteCommand("/start").Result;
+                result = _executeService.ExecuteCommand("/start", user.Id).Result;
             }
             else
             {
-                result = executeService.HandleResponse(messageText).Result;
+                result = _executeService.HandleResponse(messageText, user.Id).Result;
             }
 
             Chat chat = new Chat(update.Message.Chat.Id);
-            await messageSendingService.SendMessage(chat, result);
+            await _messageSendingService.SendMessage(chat, result);
         }
     }
 }

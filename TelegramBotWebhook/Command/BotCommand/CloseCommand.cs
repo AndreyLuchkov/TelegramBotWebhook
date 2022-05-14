@@ -4,12 +4,12 @@ namespace TelegramBotWebhook.Command.BotCommand
 {
     internal class CloseCommand : BotCommand, ILongRunning
     {
-        private Dictionary<string, string> _allowedProcessesToClose;
+        private readonly Dictionary<string, string> _allowedProcessesToClose;
         string? processToCloseName;
 
         public event Action? ExecuteIsOver;
 
-        public CloseCommand() : base("close") 
+        internal CloseCommand() : base("/close") 
         {
             _allowedProcessesToClose = new Dictionary<string, string>
             {
@@ -26,11 +26,11 @@ namespace TelegramBotWebhook.Command.BotCommand
 
                 if (processesToClose.Length == 0)
                 {
-                    return new ExecuteResult(ResultType.Text, "No process to close.");
+                    return new ExecuteResult(ResultType.Text, "Доступных для закрытия процессов не найдено.");
                 }
                 else
                 {
-                    return new ExecuteResult(ResultType.Keyboard, "Select a process to close.", processesToClose);
+                    return new ExecuteResult(ResultType.Keyboard, "Выберите процесс, который хотите закрыть.", processesToClose);
                 }
             }
             else if (option != String.Empty && processToCloseName is null)
@@ -39,36 +39,36 @@ namespace TelegramBotWebhook.Command.BotCommand
                 {
                     processToCloseName = _allowedProcessesToClose.Where((pair) => pair.Value == option)
                                                                     .Select((pair) => pair.Key).First();
-                    return new ExecuteResult(ResultType.Keyboard, $"Do you really want to close the process {option}?", new string[] { "Yes", "No" });
+                    return new ExecuteResult(ResultType.Keyboard, $"Вы действительно хотите закрыть процесс {option}?", new string[] { "Да", "Нет" });
                 }
                 else
                 {
-                    return new ExecuteResult(ResultType.Text, "Invalid process.");
+                    return new ExecuteResult(ResultType.Text, "Неверное имя процесса.");
                 }
             }
             else
             {
-                if (option.ToLower() == "yes")
+                if (option.ToLower() == "да")
                 {
                     Process[] processes = Process.GetProcessesByName(processToCloseName);
 
                     if (processes.Length == 0)
                     {
                         ExecuteIsOver?.Invoke();
-                        return new ExecuteResult(ResultType.Text, $"The process {_allowedProcessesToClose[processToCloseName!]} has already closed.");
+                        return new ExecuteResult(ResultType.Text, $"Процесс {_allowedProcessesToClose[processToCloseName!]} уже закрыт.");
                     }
                     else
                     {
                         await KillAllProcesses(processes);
                         ExecuteIsOver?.Invoke();
-                        return new ExecuteResult(ResultType.Text, $"The process {_allowedProcessesToClose[processToCloseName!]} has closed.");
+                        return new ExecuteResult(ResultType.Text, $"Процесс {_allowedProcessesToClose[processToCloseName!]} успешно закрыт.");
                     }
                 } 
                 else
                 {
                     ExecuteIsOver?.Invoke();
                     return new ExecuteResult(ResultType.RemoveKeyboard);
-                } 
+                }
             }
         }
         private string[] FindProcessesToClose()

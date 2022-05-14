@@ -1,4 +1,5 @@
-﻿using TelegramBotWebhook.Command;
+﻿using TelegramBot.Web.MPEIEmail;
+using TelegramBotWebhook.Command;
 using TelegramBotWebhook.Command.BotCommand;
 
 namespace TelegramBotWebhook.Services
@@ -7,7 +8,7 @@ namespace TelegramBotWebhook.Services
     {
         IServiceProvider _services;
         BotCommandLibrary _library;
-        private BotCommand? _runningCommand;
+        private ILongRunning? _runningCommand;
 
         public BotCommandExecuteService(IServiceProvider services)
         {
@@ -15,55 +16,60 @@ namespace TelegramBotWebhook.Services
             _library = new BotCommandLibrary();
         }
 
-        public Task<ExecuteResult> ExecuteCommand(string command)
+        public async Task<ExecuteResult> ExecuteCommand(string command, long userId)
         {
             ExecuteResult result;
             if (_library.CommandExists(command))
             {
                 BotCommand botCommand = _library.GetCommandInstance(command);
 
-                if (botCommand is ILongRunning)
-                    _runningCommand = botCommand;
+                if (botCommand is ILongRunning longRunningCommand)
+                {
+                    _runningCommand = longRunningCommand;
+                }
                 if (botCommand is IServiceRequired serviceRequiredCommand)
                 {
-                    foreach (var serviceType in serviceRequiredCommand.RequiredServicesTypes)
-                    {
-                        serviceRequiredCommand.AddService(_services.GetRequiredService(serviceType));
-                    }
+                    AddRequiredServices(serviceRequiredCommand);
+                }
+                if (botCommand is ISessionDepended sessionDependedCommand)
+                {
+                    sessionDependedCommand.Session = Session.GetInstance(userId);
                 }
                 
-                result = botCommand.Execute(String.Empty).Result;
+                result = await botCommand.Execute(String.Empty);
             }
             else
             {
-                result = new ExecuteResult(ResultType.Text, "Command not found. Use /help to see the list of commands.");
-            }
-            return Task.FromResult(result);
-        }
-        public Task<ExecuteResult> HandleResponse(string response)
-        {
-            if (ExecuteIsOver())
-                throw new Exception("No running command to receive and handle a response.");
-
-            var longRunningCommand = _runningCommand as ILongRunning;
-
-            ExecuteResult result;
-            if (longRunningCommand is not null)
-            {
-                longRunningCommand.ExecuteIsOver += SetNullToRunningCommand;
-
-                result = _runningCommand!.Execute(response).Result;
-
-                longRunningCommand.ExecuteIsOver -= SetNullToRunningCommand;
-            }
-            else
-            {
-                result = _runningCommand!.Execute(response).Result;
+                result = new ExecuteResult(ResultType.Text, "Команда не найдена. Воспользуйтесь /help , чтобы получить список доступных команд.");
             }
             
-            return Task.FromResult(result);
+            if (_runningCommand is not null)
+                result.RemoveKeyboard = false;
+
+            return result;
         }
+        private void AddRequiredServices(IServiceRequired serviceRequiredCommand)
+        {
+            foreach (var serviceType in serviceRequiredCommand.RequiredServicesTypes)
+            {
+                serviceRequiredCommand.AddService(_services.GetRequiredService(serviceType));
+            }
+        }
+        public async Task<ExecuteResult> HandleResponse(string response, long userId)
+        {
+            if (ExecuteIsOver())
+                throw new Exception("No running command to receive and handle the response.");
+
+            _runningCommand!.ExecuteIsOver += ClearRunningCommand;
+
+            if (_runningCommand is ISessionDepended sessionDependedCommand)
+            {
+                sessionDependedCommand.Session = Session.GetInstance(userId);
+            }
+
+            return await _runningCommand!.Execute(response);
+        }
+        private void ClearRunningCommand() => _runningCommand = null;
         public bool ExecuteIsOver() => _runningCommand is null;
-        private void SetNullToRunningCommand() => _runningCommand = null;
     }
 }

@@ -1,10 +1,10 @@
 ﻿namespace TelegramBotWebhook.Command
 {
-    public interface ICommand<TOption, TResult> where TResult: class
+    public interface ICommand 
     {
         string? Text { get; }
         string Prefix { get; }
 
-        public Task<TResult> Execute(TOption option);
+        public Task<ExecuteResult> Execute(string option);
     }
 }

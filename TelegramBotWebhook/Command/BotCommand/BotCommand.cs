@@ -1,6 +1,6 @@
 ﻿namespace TelegramBotWebhook.Command.BotCommand
 {
-    public abstract class BotCommand : ICommand<string, ExecuteResult>
+    public abstract class BotCommand : ICommand
     {
         public string? Text { get; }
         public string Prefix { get; } = "/";

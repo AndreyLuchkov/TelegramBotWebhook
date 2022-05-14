@@ -5,16 +5,16 @@ namespace TelegramBotWebhook.Web.HttpFactories
 {
     public class LoginHttpFactory : IHttpFactory
     {
-        private readonly IPollingClient pollingClient;
+        private readonly IPollingClient _pollingClient;
 
         public LoginHttpFactory(IPollingClient pollingClient)
         {
-            this.pollingClient = pollingClient;
+            _pollingClient = pollingClient;
         }
 
         public IHttpRequest GetRequest()
         {
-            return new LoginHttpRequest(pollingClient);
+            return new LoginHttpRequest(_pollingClient);
         }
         public IHttpResponseHandler GetResponseHandler()
         {

@@ -2,12 +2,14 @@
 {
     public class BotCommandLibrary
     {
-        static private Dictionary<string, BotCommand> library = new Dictionary<string, BotCommand>
+        static private readonly Dictionary<string, BotCommand> library = new Dictionary<string, BotCommand>
         {
             ["/help"] = new HelpCommand(),
             ["/close"] = new CloseCommand(),
             ["/start"] = new StartCommand(),
             ["/unread"] = new UnreadCommand(),
+            ["/lessons"] = new LessonsCommand(),
+            ["/login"] = new LoginCommand(),
         };
 
         public bool CommandExists(string command) => library.ContainsKey(command);

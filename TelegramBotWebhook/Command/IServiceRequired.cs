@@ -1,6 +1,6 @@
 ﻿namespace TelegramBotWebhook.Command
 {
-    public interface IServiceRequired
+    public interface IServiceRequired : ICommand
     {
         IEnumerable<Type> RequiredServicesTypes { get; }
         public void AddService(object service);

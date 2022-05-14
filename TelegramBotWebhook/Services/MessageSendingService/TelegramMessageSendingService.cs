@@ -20,21 +20,24 @@ namespace TelegramBotWebhook.Services
         {
             var sender = options.ResultType switch
             {
-                ResultType.Text => SendTextMessage(chat.Id, options.Message!),
+                ResultType.Text => SendTextMessage(chat.Id, options.Message!, options.RemoveKeyboard),
                 ResultType.Keyboard => SendMessageWithKeyboard(chat.Id, options.Message!, options.Values!),
-                ResultType.Empty => Task.CompletedTask,
                 ResultType.InlineKeyboarUrl => SendMessageWithInlineKeyboardUrl(chat.Id, options.Message!, options.Values!),
                 ResultType.RemoveKeyboard => RemoveKeyboard(chat.Id),
                 _ => throw new Exception()
             };
             await sender;
         }
-        private async Task SendTextMessage(long chatId, string text)
+        private async Task SendTextMessage(long chatId, string text, bool removeKeyboard)
         {
+            ReplyKeyboardRemove? replyMarkup = null;
+            if (removeKeyboard)
+                replyMarkup = new ReplyKeyboardRemove();
+
             await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: text ?? "",
-                replyMarkup: new ReplyKeyboardRemove());
+                replyMarkup: replyMarkup);
         }
         private async Task SendMessageWithKeyboard(long chatId, string text, string[] values)
         {
