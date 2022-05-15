@@ -1,25 +1,23 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using AngleSharp.Html.Dom;
-using TelegramBotWebhook.Web;
+using TelegramBot.Web.MPEIEmail;
 using TelegramBotWebhook.Web.Decompressor;
 
-namespace TelegramBot.Web.MPEIEmail.ResponseHandlers
+namespace TelegramBotWebhook.Web.MPEIEmail.ResponseHandlers
 {
-    internal class LoginHttpResponseHandler : IHttpResponseHandler
+    public class LoginHttpResponseHandler : IHttpResponseHandler
     {
         public async Task<IHtmlDocument> HandleResponse(HttpResponseMessage response)
         {
-            if (!(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.Moved || response.StatusCode == HttpStatusCode.Redirect))
+            if (!(response.StatusCode == HttpStatusCode.OK))
                 throw new Exception($"The unexpected response status code: {response.StatusCode}");
 
             long userId = GetUserIdFromHeaders(response.Headers);
-            if (Session.GetInstance(userId).UserKey is null)
-            {
-                string setCookieHeaderValue = GetSetCookieHeaderValue(response.Headers);
+            
+            string setCookieHeaderValue = GetSetCookieHeaderValue(response.Headers);
 
-                Session.GetInstance(userId).UserKey = setCookieHeaderValue;
-            }
+            Session.GetInstance(userId).UserKey = setCookieHeaderValue;
 
             var decompressor = new GzipToHtmlDecompressor();
             return await decompressor.DecompressToHtmlDoc(await response.Content.ReadAsStreamAsync());
@@ -30,7 +28,7 @@ namespace TelegramBot.Web.MPEIEmail.ResponseHandlers
             if (headers.TryGetValues("Set-Cookie", out setCookieValues))
                 return setCookieValues.First().Split(';').First();
             else
-                throw new NullReferenceException("The response headers do not have a set-cookie header.");
+                throw new NullReferenceException("The response headers do not have a Set-Cookie header.");
         }
         private long GetUserIdFromHeaders(HttpResponseHeaders headers)
         {

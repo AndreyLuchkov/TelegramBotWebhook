@@ -1,11 +1,11 @@
 ﻿using System.Text;
 using TelegramBot.Web.MPEIEmail;
-using TelegramBotWebhook.MPEIEmail.EmailEntities;
+using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 using TelegramBotWebhook.Services;
 
 namespace TelegramBotWebhook.Command.BotCommand
 {
-    internal class LessonsCommand : BotCommand, IServiceRequired, ISessionDepended
+    public class LessonsCommand : BotCommand, IServiceRequired, ISessionDepended
     {
         private List<object> _services;
         public IEnumerable<Type> RequiredServicesTypes { get; }
@@ -25,10 +25,10 @@ namespace TelegramBotWebhook.Command.BotCommand
         public override async Task<ExecuteResult> Execute(string option)
         {
             if (Session is null)
-                throw new InvalidOperationException("The session property is null.");
+                throw new NullReferenceException("The session property is null.");
             if (Session.Login is null || Session.Password is null)
             {
-                return new ExecuteResult(ResultType.Text, "Для использования данной команды необходима аутентификация. Воспользуйтесь командой /login, чтобы иметь доступ к почте МЭИ.");
+                return new ExecuteResult(ResultType.Text, "Для использования данной команды необходимо выполнить вход на почту МЭИ.\nВоспользуйтесь командой /login, чтобы войти на почту.");
             }
 
             var emailReader = (IEmailReadService)_services.First();

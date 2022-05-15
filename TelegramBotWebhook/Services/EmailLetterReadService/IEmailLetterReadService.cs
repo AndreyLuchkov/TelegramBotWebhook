@@ -1,5 +1,5 @@
 ﻿using TelegramBot.Web.MPEIEmail;
-using TelegramBotWebhook.MPEIEmail.EmailEntities;
+using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.Services
 {

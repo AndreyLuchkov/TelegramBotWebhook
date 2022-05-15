@@ -4,7 +4,7 @@ using TelegramBotWebhook.Web.Decompressor;
 
 namespace TelegramBotWebhook.Web.MPEIEmail.ResponseHandlers
 {
-    internal class LetterContentHttpResponseHandler : IHttpResponseHandler
+    public class LetterContentHttpResponseHandler : IHttpResponseHandler
     {
         public async Task<IHtmlDocument> HandleResponse(HttpResponseMessage response)
         {

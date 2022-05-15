@@ -1,7 +1,6 @@
 ﻿using AngleSharp.Html.Dom;
-using TelegramBotWebhook.MPEIEmail.EmailEntities;
+using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 using TelegramBotWebhook.Web.HttpFactories;
-using TelegramBotWebhook.Extensions;
 using TelegramBotWebhook.HtmlParsers;
 using TelegramBot.Web.MPEIEmail;
 
@@ -9,11 +8,11 @@ namespace TelegramBotWebhook.Services
 {
     public class LessonLetterReadService : IEmailLetterReadService<LessonLetter>
     {
-        private readonly IHttpFactory _httpFactory;
+        private readonly HttpWorker _httpWorker;
 
-        public LessonLetterReadService(IEnumerable<IHttpFactory> httpFactories)
+        public LessonLetterReadService(HttpWorker httpWorker)
         {
-            _httpFactory = httpFactories.Where((factory) => factory is LetterContentHttpFactory).First();
+            _httpWorker = httpWorker;
         }
 
         public async Task<LessonLetter> ReadLetter(Session session, LetterRecord letterRecord)
@@ -23,7 +22,7 @@ namespace TelegramBotWebhook.Services
                 throw new ArgumentException("The letter record with a wrong type property.");
             }
             
-            var response = GetResponseFromEmail(session, letterRecord);
+            var response = _httpWorker.SendLetterContentRequest(session, letterRecord);
 
             LessonLetterParser letterContentParser = new();
 
@@ -33,22 +32,9 @@ namespace TelegramBotWebhook.Services
         }
         public async Task<IEnumerable<LessonLetter>> ReadLetters(Session session, IEnumerable<LetterRecord> letterRecords)
         {
-            var lessonLetters = letterRecords.Select((letterRecord) => ReadLetter(session, letterRecord)).ToArray();
+            Task<LessonLetter>[] lessonLetters = letterRecords.Select((letterRecord) => ReadLetter(session, letterRecord)).ToArray();
             
             return await Task.WhenAll(lessonLetters);
-        }
-        private async Task<IHtmlDocument> GetResponseFromEmail(Session session, LetterRecord letterRecord)
-        {
-            var request = _httpFactory.GetRequest();
-
-            HttpRequestOptions options = new();
-            options.GetReadLetterOptions(session.UserId, letterRecord);
-
-            var response = request.Send(options);
-
-            var responseHandler = _httpFactory.GetResponseHandler();
-
-            return await responseHandler.HandleResponse(await response);
         }
     }
 }

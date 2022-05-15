@@ -2,7 +2,7 @@
 
 namespace TelegramBotWebhook.Command.BotCommand
 {
-    internal class StartCommand : BotCommand
+    public class StartCommand : BotCommand
     {
         internal StartCommand() : base("/start") { }
 

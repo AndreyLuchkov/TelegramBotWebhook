@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
-using TelegramBotWebhook.MPEIEmail.EmailEntities;
+using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.HtmlParsers
 {

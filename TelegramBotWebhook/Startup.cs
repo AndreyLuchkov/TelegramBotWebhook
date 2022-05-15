@@ -1,8 +1,7 @@
 ﻿using Telegram.Bot;
-using TelegramBotWebhook.MPEIEmail.EmailEntities;
+using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 using TelegramBotWebhook.Services;
 using TelegramBotWebhook.Web;
-using TelegramBotWebhook.Web.HttpFactories;
 
 namespace TelegramBotWebhook
 {
@@ -49,9 +48,11 @@ namespace TelegramBotWebhook
 
             services.AddScoped<ISessionService, MPEIEmailSessionService>();
 
-            services.AddSingleton<IHttpFactory, LoginHttpFactory>();
-            services.AddSingleton<IHttpFactory, LetterContentHttpFactory>();
-            services.AddSingleton<IHttpFactory, EmailPageHttpFactory>();
+            services.AddSingleton<HttpFactories>();
+
+            services.AddSingleton<HttpWorker>();
+
+            services.AddTransient<IEmailAutentificationService, MPEIEmailAutentificationService>();
 
             services.AddTransient<IEmailReadService, MPEIEmailReadService>();
 

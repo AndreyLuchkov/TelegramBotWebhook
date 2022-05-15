@@ -1,5 +1,5 @@
-﻿using TelegramBot.Web.MPEIEmail.Requests;
-using TelegramBot.Web.MPEIEmail.ResponseHandlers;
+﻿using TelegramBotWebhook.Web.MPEIEmail.Requests;
+using TelegramBotWebhook.Web.MPEIEmail.ResponseHandlers;
 
 namespace TelegramBotWebhook.Web.HttpFactories
 {

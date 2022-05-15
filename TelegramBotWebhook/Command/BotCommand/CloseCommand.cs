@@ -2,7 +2,7 @@
 
 namespace TelegramBotWebhook.Command.BotCommand
 {
-    internal class CloseCommand : BotCommand, ILongRunning
+    public class CloseCommand : BotCommand, ILongRunning
     {
         private readonly Dictionary<string, string> _allowedProcessesToClose;
         string? processToCloseName;

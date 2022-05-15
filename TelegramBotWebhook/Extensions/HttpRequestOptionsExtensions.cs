@@ -1,26 +1,26 @@
 ﻿using TelegramBot.Web.MPEIEmail;
-using TelegramBotWebhook.MPEIEmail.EmailEntities;
+using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.Extensions
 {
     static class HttpRequestOptionsExtensions
     {
-        static public HttpRequestOptions GetLoginOptions(this HttpRequestOptions options, long userId)
+        static public HttpRequestOptions GetLoginOptions(this HttpRequestOptions options, Session session)
         {
-            options.TryAdd("userId", userId);
+            options.TryAdd("session", session);
 
             return options;
         } 
-        static public HttpRequestOptions GetEmailPageOptions(this HttpRequestOptions options, long userId, int pageNumber)
+        static public HttpRequestOptions GetEmailPageOptions(this HttpRequestOptions options, Session session, int pageNumber)
         {
-            options.TryAdd("userId", userId);
+            options.TryAdd("session", session);
             options.TryAdd("pageNumber", pageNumber);
 
             return options;
         }
-        static public HttpRequestOptions GetReadLetterOptions(this HttpRequestOptions options, long userId, LetterRecord letterRecord)
+        static public HttpRequestOptions GetReadLetterOptions(this HttpRequestOptions options, Session session, LetterRecord letterRecord)
         {
-            options.TryAdd("userId", userId);
+            options.TryAdd("session", session);
             options.TryAdd("letterRecord", letterRecord);
 
             return options;

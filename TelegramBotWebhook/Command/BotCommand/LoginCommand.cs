@@ -1,35 +1,61 @@
 ﻿using TelegramBot.Web.MPEIEmail;
+using TelegramBotWebhook.Services;
 
 namespace TelegramBotWebhook.Command.BotCommand
 {
-    internal class LoginCommand : BotCommand, ILongRunning, ISessionDepended
+    public class LoginCommand : BotCommand, ILongRunning, ISessionDepended, IServiceRequired
     {
+        private List<object> _services;
+
         public Session? Session { get; set; }
-        internal LoginCommand() : base("/login") { }
+        public IEnumerable<Type> RequiredServicesTypes { get; }
 
         public event Action? ExecuteIsOver;
 
-        public override Task<ExecuteResult> Execute(string option)
+        internal LoginCommand() : base("/login")
+        {
+            RequiredServicesTypes = new Type[1] { typeof(IEmailAutentificationService) };
+            _services = new List<object>(1);
+        }
+        
+        public void AddService(object service)
+        {
+            if (_services.Count != RequiredServicesTypes.Count())
+                _services.Add(service);
+        }
+        public override async Task<ExecuteResult> Execute(string option)
         {
             if (Session is null)
-                throw new InvalidOperationException("The session property is null.");
+                throw new NullReferenceException("The session property is null.");
 
             if (Session.Login is null && option == String.Empty)
             {
-                return Task.FromResult(new ExecuteResult(ResultType.Text, "Введите логин для почты:"));
+                return new ExecuteResult(ResultType.Text, "Введите логин для почты:");
             } 
             else if (Session.Login is null && option != String.Empty)
             {
                 Session.Login = option;
-                return Task.FromResult(new ExecuteResult(ResultType.Text, "Введите пароль:"));
+                return new ExecuteResult(ResultType.Text, "Введите пароль:");
             }
             else
             {
                 Session.Password = option;
 
-                ExecuteIsOver?.Invoke(); 
-                return Task.FromResult(new ExecuteResult(ResultType.RemoveKeyboard));
+                var autentificationService = (IEmailAutentificationService)_services.First();
+
+                if (await autentificationService.TryAutentificate(Session))
+                {
+                    ExecuteIsOver?.Invoke();
+                    return new ExecuteResult(ResultType.Text, "Вы успешно вошли на почту МЭИ.");
+                }
+                else
+                {
+                    ExecuteIsOver?.Invoke();
+                    return new ExecuteResult(ResultType.Text, "Не удалось войти на почту МЭИ.\nВозможно вы ввели неверный логин или пароль.");
+                }
             }
         }
+
+        
     }
 }

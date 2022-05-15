@@ -1,4 +1,4 @@
-﻿namespace TelegramBotWebhook.MPEIEmail.EmailEntities
+﻿namespace TelegramBotWebhook.Web.MPEIEmail.EmailEntities
 {
     public class LessonLetter 
     {
