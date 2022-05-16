@@ -7,39 +7,39 @@ namespace TelegramBotWebhook.Command.BotCommand
 {
     public class UnreadCommand : BotCommand, IServiceRequired, ISessionDepended
     {
-        private List<object> _services;
+        IEmailReadService? _emailReadService;
+
         public IEnumerable<Type> RequiredServicesTypes { get; }
         public Session? Session { get; set; }
 
         internal UnreadCommand() : base("/unread") 
         { 
             RequiredServicesTypes = new Type[1] { typeof(IEmailReadService) };
-            _services = new List<object>(1);
         }
        
         public void AddService(object service)
         {
-            if (_services.Count() == 0)
-                _services.Add(service);
+            if (service is IEmailReadService emailReadService)
+            {
+                _emailReadService = emailReadService;
+            }
         }
         public override async Task<ExecuteResult> Execute(string option)
         {
             if (Session is null)
                 throw new InvalidOperationException("The session property is null.");
-            if (Session.Login is null || Session.Password is null)
+            if (Session.UserKey is null)
             {
                 return new ExecuteResult(ResultType.Text, "Для использования данной команды необходимо выполнить вход на почту МЭИ.\nВоспользуйтесь командой /login, чтобы войти на почту.");
             }
 
-            var emailReadService = (IEmailReadService)_services.First();
-
-            var letters = (await emailReadService.GetLetters(Session))
+            var letterRecords = (await _emailReadService!.GetLetters(Session))
                 .Where((letter) => !letter.IsRead);
 
-            if (letters.Count() > 0)
+            if (letterRecords.Count() > 0)
             {
                 StringBuilder resultMessage = new StringBuilder("Список непрочитанных писем: \n");
-                resultMessage.Append(LettersToString(letters));
+                resultMessage.Append(LetterRecordsToString(letterRecords));
 
                 return new ExecuteResult(ResultType.InlineKeyboarUrl, resultMessage, new string[] { "Ссылка на почту МЭИ", $"https://legacy.mpei.ru/CookieAuth.dll?Logon?curl=Z2Fowa&flags=0&forcedownlevel=0&formdir=2&username={Session.Login}&password={Session.Password}&isUtf8=1&trusted=4" }); ;
             }
@@ -48,7 +48,7 @@ namespace TelegramBotWebhook.Command.BotCommand
                 return new ExecuteResult(ResultType.Text, "Непрочитанные письма не найдены.");
             }
         }
-        private StringBuilder LettersToString(IEnumerable<LetterRecord> letters)
+        private StringBuilder LetterRecordsToString(IEnumerable<LetterRecord> letters)
         {
             StringBuilder lettersInfo = new StringBuilder();
 

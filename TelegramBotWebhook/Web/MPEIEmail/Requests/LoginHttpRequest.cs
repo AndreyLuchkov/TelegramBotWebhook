@@ -53,9 +53,9 @@ namespace TelegramBotWebhook.Web.MPEIEmail.Requests
 
             return Task.CompletedTask;
         }
-        protected override void AddToResponseHeaders(HttpResponseHeaders headers)
+        protected override void AddHeadersToResponse(HttpResponseHeaders headers) 
         {
-            headers.Add("userId", Session!.UserId.ToString());
+            headers.Add("User-Id", $"{Session!.UserId}");
         }
     }
 }

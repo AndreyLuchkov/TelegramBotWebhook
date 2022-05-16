@@ -19,7 +19,7 @@ namespace TelegramBotWebhook.Web.MPEIEmail.Requests
 
             var response = await _pollingClient.Send(request);
 
-            AddToResponseHeaders(response.Headers);
+            AddHeadersToResponse(response.Headers);
 
             return response;
         }
@@ -27,6 +27,6 @@ namespace TelegramBotWebhook.Web.MPEIEmail.Requests
         protected abstract HttpRequestMessage CreateRequestMessage();
         protected abstract Task SetHeaders(HttpRequestHeaders headers);
         protected abstract Task SetContent(HttpRequestMessage request);
-        protected abstract void AddToResponseHeaders(HttpResponseHeaders headers);
+        protected abstract void AddHeadersToResponse(HttpResponseHeaders headers);
     }
 }

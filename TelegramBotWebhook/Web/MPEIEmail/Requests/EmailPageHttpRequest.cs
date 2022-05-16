@@ -23,7 +23,7 @@ namespace TelegramBotWebhook.Web.MPEIEmail.Requests
             PageNumber = pageNumber;
             Session = session;
         }
-        protected override HttpRequestMessage CreateRequestMessage() => new HttpRequestMessage(HttpMethod.Get, $"/owa/");
+        protected override HttpRequestMessage CreateRequestMessage() => new HttpRequestMessage(HttpMethod.Get, $"/owa/?ae=Folder&t=IPF.Note&id=LgAAAAAwKdr6ofryRp%2fEvmXd%2f7SLAQCE%2ftsTrZ4BTKDCJsVfen5wAPerJuDbAAAB&slUsng=0&pg={PageNumber}");
         protected override Task SetHeaders(HttpRequestHeaders headers)
         {
             headers.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
@@ -37,19 +37,7 @@ namespace TelegramBotWebhook.Web.MPEIEmail.Requests
 
             return Task.CompletedTask;
         }
-        protected override Task SetContent(HttpRequestMessage request)
-        {
-            request.Content = new FormUrlEncodedContent(new List<KeyValuePair<string, string>>
-            {
-                new KeyValuePair<string, string>("ae", "Folder"),
-                new KeyValuePair<string, string>("t", "IPF.Note"),
-                new KeyValuePair<string, string>("id", "LgAAAAAwKdr6ofryRp/EvmXd/7SLAQCE/tsTrZ4BTKDCJsVfen5wAPerJuDbAAAB"),
-                new KeyValuePair<string, string>("slUsng", "0"),
-                new KeyValuePair<string, string>("pg", $"{PageNumber}"),
-            });
-
-            return Task.CompletedTask;
-        }
-        protected override void AddToResponseHeaders(HttpResponseHeaders headers) { }
+        protected override Task SetContent(HttpRequestMessage request) => Task.CompletedTask;
+        protected override void AddHeadersToResponse(HttpResponseHeaders headers) { }
     }
 }

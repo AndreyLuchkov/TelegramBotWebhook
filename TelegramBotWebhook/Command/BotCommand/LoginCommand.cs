@@ -5,7 +5,7 @@ namespace TelegramBotWebhook.Command.BotCommand
 {
     public class LoginCommand : BotCommand, ILongRunning, ISessionDepended, IServiceRequired
     {
-        private List<object> _services;
+        IEmailAutentificationService? _autentificationService;
 
         public Session? Session { get; set; }
         public IEnumerable<Type> RequiredServicesTypes { get; }
@@ -15,18 +15,35 @@ namespace TelegramBotWebhook.Command.BotCommand
         internal LoginCommand() : base("/login")
         {
             RequiredServicesTypes = new Type[1] { typeof(IEmailAutentificationService) };
-            _services = new List<object>(1);
         }
         
         public void AddService(object service)
         {
-            if (_services.Count != RequiredServicesTypes.Count())
-                _services.Add(service);
+            if (service is IEmailAutentificationService autentificationService)
+            {
+                _autentificationService = autentificationService;
+            }
         }
         public override async Task<ExecuteResult> Execute(string option)
         {
             if (Session is null)
-                throw new NullReferenceException("The session property is null.");
+                throw new InvalidOperationException("The session property is null.");
+            if (_autentificationService is null)
+                throw new InvalidOperationException("The required services has not added.");
+
+            if (AlreadyLoggedIn())
+            {
+                if (await _autentificationService!.TryUnlogin(Session))
+                {
+                    Session.Login = null;
+                    Session.Password = null;
+                }
+                else
+                {
+                    ExecuteIsOver?.Invoke();
+                    return new ExecuteResult(ResultType.Text, "Ошибка окончания сессии.");
+                }
+            }
 
             if (Session.Login is null && option == String.Empty)
             {
@@ -41,9 +58,7 @@ namespace TelegramBotWebhook.Command.BotCommand
             {
                 Session.Password = option;
 
-                var autentificationService = (IEmailAutentificationService)_services.First();
-
-                if (await autentificationService.TryAutentificate(Session))
+                if (await _autentificationService!.TryAutentificate(Session))
                 {
                     ExecuteIsOver?.Invoke();
                     return new ExecuteResult(ResultType.Text, "Вы успешно вошли на почту МЭИ.");
@@ -55,7 +70,6 @@ namespace TelegramBotWebhook.Command.BotCommand
                 }
             }
         }
-
-        
+        private bool AlreadyLoggedIn() => Session!.Login is not null && Session.Password is not null;
     }
 }

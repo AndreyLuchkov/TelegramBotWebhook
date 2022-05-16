@@ -19,6 +19,7 @@ namespace TelegramBotWebhook.Services
                 "login" => new LoginHttpFactory(_pollingClient),
                 "emailpage" => new EmailPageHttpFactory(_pollingClient),
                 "lettercontent" => new LetterContentHttpFactory(_pollingClient),
+                "unlogin" => new UnloginHttpFactory(_pollingClient),
                 _ => throw new ArgumentException("Unable to find the requested HTTP factory."),
             };
         }

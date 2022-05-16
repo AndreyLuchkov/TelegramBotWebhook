@@ -13,7 +13,6 @@ namespace TelegramBotWebhook.Web
             client.BaseAddress = new Uri("https://legacy.mpei.ru");
         }
 
-        public HttpRequestHeaders GetHeaders() => _client.DefaultRequestHeaders;
         public async Task<HttpResponseMessage> Send(HttpRequestMessage request) => await _client.SendAsync(request);
         
     }

@@ -1,5 +1,5 @@
-﻿using AngleSharp.Html.Dom;
-using System.Net;
+﻿using System.Net;
+using AngleSharp.Html.Dom;
 using TelegramBotWebhook.Web.Decompressor;
 
 namespace TelegramBotWebhook.Web.MPEIEmail.ResponseHandlers

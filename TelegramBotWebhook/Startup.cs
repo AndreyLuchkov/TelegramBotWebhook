@@ -40,7 +40,7 @@ namespace TelegramBotWebhook
             services.AddHostedService<ConfigureWebHook>();
 
             services.AddHttpClient("MPEIEmail")
-                .AddTypedClient<IPollingClient, MPEIEmailPollingClient>();
+                .AddTypedClient <IPollingClient, MPEIEmailPollingClient>();
 
             services.AddHttpClient("tgwebhook")
                 .AddTypedClient<ITelegramBotClient>(httpClient

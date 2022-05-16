@@ -10,33 +10,31 @@ namespace TelegramBotWebhook.Web.MPEIEmail.ResponseHandlers
     {
         public async Task<IHtmlDocument> HandleResponse(HttpResponseMessage response)
         {
-            if (!(response.StatusCode == HttpStatusCode.OK))
+            if (response.StatusCode != HttpStatusCode.OK)
                 throw new Exception($"The unexpected response status code: {response.StatusCode}");
 
             long userId = GetUserIdFromHeaders(response.Headers);
-            
-            string setCookieHeaderValue = GetSetCookieHeaderValue(response.Headers);
 
-            Session.GetInstance(userId).UserKey = setCookieHeaderValue;
+            Session.GetInstance(userId).UserKey = GetSetCookieHeaderValue(response.Headers);
 
             var decompressor = new GzipToHtmlDecompressor();
             return await decompressor.DecompressToHtmlDoc(await response.Content.ReadAsStreamAsync());
         }
-        private string GetSetCookieHeaderValue(HttpResponseHeaders headers)
+        private string? GetSetCookieHeaderValue(HttpResponseHeaders headers)
         {
             IEnumerable<string>? setCookieValues;
             if (headers.TryGetValues("Set-Cookie", out setCookieValues))
                 return setCookieValues.First().Split(';').First();
             else
-                throw new NullReferenceException("The response headers do not have a Set-Cookie header.");
+                return null;
         }
         private long GetUserIdFromHeaders(HttpResponseHeaders headers)
         {
             IEnumerable<string>? userId;
-            if (headers.TryGetValues("userId", out userId))
+            if (headers.TryGetValues("User-Id", out userId))
                 return long.Parse(userId.First());
             else
-                throw new NullReferenceException("The response headers do not have a userId header.");
+                throw new NullReferenceException("The response headers do not have a User-Id header.");
         }
     }
 }

@@ -46,5 +46,12 @@ namespace TelegramBotWebhook.Services
 
             return await SendRequest(_httpFactories.GetHttpFactory("letterContent"), options);
         }
+        public async Task<IHtmlDocument> SendUnloginRequest(Session session)
+        {
+            HttpRequestOptions options = new();
+            options.GetLoginOptions(session);
+
+            return await SendRequest(_httpFactories.GetHttpFactory("unlogin"), options);
+        }
     }
 }

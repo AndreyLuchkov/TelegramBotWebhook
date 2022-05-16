@@ -1,31 +1,26 @@
 ﻿using System.Net.Http.Headers;
 using TelegramBot.Web.MPEIEmail;
-using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.Web.MPEIEmail.Requests
 {
-    public class LetterContentHttpRequest : MPEIEmailHttpRequest
+    public class UnloginHttpRequest : MPEIEmailHttpRequest
     {
         private Session? Session { get; set; }
-        private LetterRecord? Letter { get; set; }
 
-        public LetterContentHttpRequest(IPollingClient pollingClient) : base(pollingClient) { }
+        public UnloginHttpRequest(IPollingClient pollingClient) : base(pollingClient) { }
 
         protected override void GetOptions(HttpRequestOptions options)
         {
-            LetterRecord? letterRecord;
             Session? session;
             options.TryGetValue(new HttpRequestOptionsKey<Session>("session"), out session);
-            options.TryGetValue(new HttpRequestOptionsKey<LetterRecord>("letterRecord"), out letterRecord);
 
-            if (letterRecord is null || session is null)
-                throw new Exception("Request options do not contain a letterRecord or userId key.");
+            if (session is null)
+                throw new Exception("The request options do not contain a session key.");
 
             Session = session;
-            Letter = letterRecord;
         }
-        protected override HttpRequestMessage CreateRequestMessage() => new HttpRequestMessage(HttpMethod.Get, $"/owa/?ae=Item&t={Letter!.Type}&id={Letter.LetterKey}");
-        protected override Task SetHeaders(HttpRequestHeaders headers)
+        protected override HttpRequestMessage CreateRequestMessage() => new HttpRequestMessage(HttpMethod.Get, $"/owa/logoff.owa?canary={Session!.UnlogKey}");
+        protected override Task SetHeaders(HttpRequestHeaders headers) 
         {
             headers.Accept.ParseAdd("text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
             headers.AcceptEncoding.ParseAdd("gzip, deflate, br");

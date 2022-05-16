@@ -6,7 +6,6 @@ namespace TelegramBotWebhook.Web
     {
         public Uri? BaseAddress { get; }
 
-        public HttpRequestHeaders GetHeaders();
         public Task<HttpResponseMessage> Send(HttpRequestMessage request);
     }
 }
