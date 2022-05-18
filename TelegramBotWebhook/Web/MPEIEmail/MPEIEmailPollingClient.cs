@@ -1,6 +1,4 @@
-﻿using System.Net.Http.Headers;
-
-namespace TelegramBotWebhook.Web
+﻿namespace TelegramBotWebhook.Web
 {
     public class MPEIEmailPollingClient : IPollingClient
     {
@@ -14,6 +12,5 @@ namespace TelegramBotWebhook.Web
         }
 
         public async Task<HttpResponseMessage> Send(HttpRequestMessage request) => await _client.SendAsync(request);
-        
     }
 }

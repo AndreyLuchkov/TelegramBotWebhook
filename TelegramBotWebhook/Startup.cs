@@ -45,12 +45,14 @@ namespace TelegramBotWebhook
             services.AddHttpClient("tgwebhook")
                 .AddTypedClient<ITelegramBotClient>(httpClient
                     => new TelegramBotClient(BotConfig.Token, httpClient));
+            
+            services.AddSingleton<IMessageSendingService<ExecuteResult>, TelegramMessageSendingService>();
 
-            services.AddScoped<ISessionService, MPEIEmailSessionService>();
+            services.AddSingleton<ICommandExecuteService<ExecuteResult>, BotCommandExecuteService>();
 
-            services.AddSingleton<HttpFactories>();
+            services.AddTransient<HttpFactories>();
 
-            services.AddSingleton<HttpWorker>();
+            services.AddTransient<HttpWorker>();
 
             services.AddTransient<IEmailAutentificationService, MPEIEmailAutentificationService>();
 
@@ -58,9 +60,7 @@ namespace TelegramBotWebhook
 
             services.AddTransient<IEmailLetterReadService<LessonLetter>, LessonLetterReadService>();
 
-            services.AddSingleton<IMessageSendingService<ExecuteResult>, TelegramMessageSendingService>();
-
-            services.AddSingleton<ICommandExecuteService<ExecuteResult>, BotCommandExecuteService>();
+            services.AddTransient<MPEIEmailSessionService>();
 
             services.AddScoped<UpdateHandleService>();
 

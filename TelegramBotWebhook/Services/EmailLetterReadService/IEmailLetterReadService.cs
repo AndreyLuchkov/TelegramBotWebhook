@@ -1,4 +1,4 @@
-﻿using TelegramBot.Web.MPEIEmail;
+﻿using TelegramBotWebhook.Web.MPEIEmail;
 using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.Services

@@ -1,6 +1,6 @@
 ﻿using AngleSharp.Html.Dom;
 using TelegramBotWebhook.Extensions;
-using TelegramBot.Web.MPEIEmail;
+using TelegramBotWebhook.Web.MPEIEmail;
 using TelegramBotWebhook.Web.HttpFactories;
 using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 

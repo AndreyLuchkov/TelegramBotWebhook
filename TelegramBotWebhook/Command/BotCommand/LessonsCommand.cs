@@ -1,24 +1,20 @@
 ﻿using System.Text;
-using TelegramBot.Web.MPEIEmail;
-using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 using TelegramBotWebhook.Services;
+using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.Command.BotCommand
 {
-    public class LessonsCommand : BotCommand, IServiceRequired, ISessionDepended
+    public sealed class LessonsCommand : SessionedBotCommand
     {
-        IEmailReadService? _emailReadService;
-        IEmailLetterReadService<LessonLetter>? _emailLetterReadService;
-
-        public IEnumerable<Type> RequiredServicesTypes { get; }
-        public Session? Session { get; set; }
+        private IEmailReadService? _emailReadService;
+        private IEmailLetterReadService<LessonLetter>? _emailLetterReadService;
 
         internal LessonsCommand() : base("/lessons")
         {
-            RequiredServicesTypes = new Type[2] { typeof(IEmailReadService), typeof(IEmailLetterReadService<LessonLetter>) };
+            AddRequiredServiceTypes(new[] { typeof(IEmailReadService), typeof(IEmailLetterReadService<LessonLetter>) });
         }
 
-        public void AddService(object service)
+        protected override void AddNewService(object service)
         {
             if (service is IEmailReadService emailReadService)
             {
@@ -29,14 +25,9 @@ namespace TelegramBotWebhook.Command.BotCommand
                 _emailLetterReadService = emailLetterReadService;
             }
         }
-        public override async Task<ExecuteResult> Execute(string option)
+        protected override async Task<ExecuteResult> ConcreteExecute(string option)
         {
-            if (Session is null)
-                throw new InvalidOperationException("The session property is null.");
-            if (_emailReadService is null || _emailLetterReadService is null)
-                throw new InvalidOperationException("The required services has not added.");
-
-            if (Session.UserKey is null)
+            if (Session!.UserKey is null)
             {
                 return new ExecuteResult(ResultType.Text, "Для использования данной команды необходимо выполнить вход на почту МЭИ.\nВоспользуйтесь командой /login, чтобы войти на почту.");
             }
@@ -44,7 +35,7 @@ namespace TelegramBotWebhook.Command.BotCommand
             var letterRecords = _emailReadService!.GetLetters(Session);
 
             var lessonLetters = _emailLetterReadService!.ReadLetters(
-                Session, 
+                Session,
                 (await letterRecords)
                     .Where((letter) => letter.Type == "IPM.Schedule.Meeting.Request"));
 
@@ -59,7 +50,8 @@ namespace TelegramBotWebhook.Command.BotCommand
                 resultMessage.AppendLine(lessonLetter.Teacher)
                     .AppendLine(lessonLetter.LessonStartDate.ToString())
                     .AppendLine(lessonLetter.SessionLink)
-                    .AppendLine();
+                    .AppendLine(lessonLetter.SessionNumber.ToString())
+                    .AppendLine(lessonLetter.SessionPassword);
             }
 
             return resultMessage;

@@ -1,9 +1,6 @@
-﻿using TelegramBotWebhook.Web.HttpFactories;
-using TelegramBotWebhook.Extensions;
+﻿using TelegramBotWebhook.HtmlParsers;
+using TelegramBotWebhook.Web.MPEIEmail;
 using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
-using TelegramBotWebhook.HtmlParsers;
-using AngleSharp.Html.Dom;
-using TelegramBot.Web.MPEIEmail;
 
 namespace TelegramBotWebhook.Services
 {

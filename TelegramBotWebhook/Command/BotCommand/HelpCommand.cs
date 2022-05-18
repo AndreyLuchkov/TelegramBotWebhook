@@ -10,8 +10,7 @@ namespace TelegramBotWebhook.Command.BotCommand
         {
             var resultMessage = new StringBuilder("Список команд: \n");
 
-            BotCommandLibrary library = new BotCommandLibrary();
-            var commandsNames = library.GetAllCommandNames()
+            var commandsNames = BotCommandLibrary.GetAllCommandNames()
                 .Where((name) => name != "/help" && name != "/start");
             
             foreach (var commandName in commandsNames)

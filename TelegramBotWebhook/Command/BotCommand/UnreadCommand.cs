@@ -1,34 +1,29 @@
 ﻿using System.Text;
 using TelegramBotWebhook.Services;
-using TelegramBot.Web.MPEIEmail;
+using TelegramBotWebhook.Web.MPEIEmail;
 using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.Command.BotCommand
 {
-    public class UnreadCommand : BotCommand, IServiceRequired, ISessionDepended
+    public sealed class UnreadCommand : SessionedBotCommand
     {
-        IEmailReadService? _emailReadService;
-
-        public IEnumerable<Type> RequiredServicesTypes { get; }
-        public Session? Session { get; set; }
+        private IEmailReadService? _emailReadService;
 
         internal UnreadCommand() : base("/unread") 
         { 
-            RequiredServicesTypes = new Type[1] { typeof(IEmailReadService) };
+            AddRequiredServiceType(typeof(IEmailReadService));
         }
        
-        public void AddService(object service)
+        protected override void AddNewService(object service)
         {
             if (service is IEmailReadService emailReadService)
             {
                 _emailReadService = emailReadService;
             }
         }
-        public override async Task<ExecuteResult> Execute(string option)
+        protected override async Task<ExecuteResult> ConcreteExecute(string option)
         {
-            if (Session is null)
-                throw new InvalidOperationException("The session property is null.");
-            if (Session.UserKey is null)
+            if (Session!.UserKey is null)
             {
                 return new ExecuteResult(ResultType.Text, "Для использования данной команды необходимо выполнить вход на почту МЭИ.\nВоспользуйтесь командой /login, чтобы войти на почту.");
             }

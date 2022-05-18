@@ -1,5 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using TelegramBot.Web.MPEIEmail;
 
 namespace TelegramBotWebhook.Web.MPEIEmail.Requests
 {

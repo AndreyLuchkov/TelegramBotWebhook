@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using AngleSharp.Html.Dom;
-using TelegramBot.Web.MPEIEmail;
 using TelegramBotWebhook.Web.Decompressor;
 
 namespace TelegramBotWebhook.Web.MPEIEmail.ResponseHandlers

@@ -20,7 +20,7 @@ namespace TelegramBotWebhook.Command.BotCommand
 
         public override async Task<ExecuteResult> Execute(string option)
         {
-            if (option == String.Empty)
+            if (IsUserId(option))
             {
                 string[] processesToClose = FindProcessesToClose();
 
@@ -71,6 +71,7 @@ namespace TelegramBotWebhook.Command.BotCommand
                 }
             }
         }
+        private bool IsUserId(string option) => long.TryParse(option, out long userId);
         private string[] FindProcessesToClose()
         {
             var currentProcesses = Process.GetProcesses().AsParallel()

@@ -50,6 +50,11 @@
                 _lessonLetter._sessionNumber = sessionNumber;
                 return this;
             }
+            public LessonLetterBuilder SessionNumber(string sessionNumber)
+            {
+                int.TryParse(sessionNumber, out _lessonLetter._sessionNumber);
+                return this;
+            }
             public LessonLetterBuilder SessionPassword(string sessionPassword) 
             {
                 _lessonLetter._sessionPassword = sessionPassword;

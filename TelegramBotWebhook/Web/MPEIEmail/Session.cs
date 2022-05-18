@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace TelegramBot.Web.MPEIEmail
+namespace TelegramBotWebhook.Web.MPEIEmail
 {
     public sealed class Session
     {

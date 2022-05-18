@@ -1,41 +1,33 @@
-﻿using TelegramBot.Web.MPEIEmail;
-using TelegramBotWebhook.Services;
+﻿using TelegramBotWebhook.Services;
+using TelegramBotWebhook.Web.MPEIEmail;
 
 namespace TelegramBotWebhook.Command.BotCommand
 {
-    public class LoginCommand : BotCommand, ILongRunning, ISessionDepended, IServiceRequired
+    public sealed class LoginCommand : SessionedBotCommand, ILongRunning
     {
-        IEmailAutentificationService? _autentificationService;
-
-        public Session? Session { get; set; }
-        public IEnumerable<Type> RequiredServicesTypes { get; }
+        private IEmailAutentificationService? _autentificationService;
 
         public event Action? ExecuteIsOver;
 
         internal LoginCommand() : base("/login")
         {
-            RequiredServicesTypes = new Type[1] { typeof(IEmailAutentificationService) };
+            AddRequiredServiceType(typeof(IEmailAutentificationService));
         }
         
-        public void AddService(object service)
+        protected override void AddNewService(object service)
         {
             if (service is IEmailAutentificationService autentificationService)
             {
                 _autentificationService = autentificationService;
             }
         }
-        public override async Task<ExecuteResult> Execute(string option)
+        protected override async Task<ExecuteResult> ConcreteExecute(string option)
         {
-            if (Session is null)
-                throw new InvalidOperationException("The session property is null.");
-            if (_autentificationService is null)
-                throw new InvalidOperationException("The required services has not added.");
-
             if (AlreadyLoggedIn())
             {
-                if (await _autentificationService!.TryUnlogin(Session))
+                if (await _autentificationService!.TryUnlogin(Session!))
                 {
-                    Session.Login = null;
+                    Session!.Login = null;
                     Session.Password = null;
                 }
                 else
@@ -45,14 +37,14 @@ namespace TelegramBotWebhook.Command.BotCommand
                 }
             }
 
-            if (Session.Login is null && option == String.Empty)
+            if (Session!.Login is null && IsUserId(option))
             {
-                return new ExecuteResult(ResultType.Text, "Введите логин для почты:");
+                return new ExecuteResult(ResultType.Text, "Введите логин для почты.");
             } 
             else if (Session.Login is null && option != String.Empty)
             {
                 Session.Login = option;
-                return new ExecuteResult(ResultType.Text, "Введите пароль:");
+                return new ExecuteResult(ResultType.Text, "Введите пароль.");
             }
             else
             {
@@ -70,6 +62,7 @@ namespace TelegramBotWebhook.Command.BotCommand
                 }
             }
         }
+        private bool IsUserId(string option) => long.TryParse(option, out long userId);
         private bool AlreadyLoggedIn() => Session!.Login is not null && Session.Password is not null;
     }
 }

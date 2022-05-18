@@ -1,19 +1,18 @@
 ﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using TelegramBot.Web.MPEIEmail;
 
 namespace TelegramBotWebhook.Services
 {
     public class UpdateHandleService 
     {
         private readonly ILogger<UpdateHandleService> _logger;
-        private readonly ICommandExecuteService<ExecuteResult> _executeService;
+        private readonly ICommandExecuteService<ExecuteResult> _commandExecuteService;
         private readonly IMessageSendingService<ExecuteResult> _messageSendingService;
 
         public UpdateHandleService(ILogger<UpdateHandleService> logger, ICommandExecuteService<ExecuteResult> executeService, IMessageSendingService<ExecuteResult> messageSendingService)
         {
             _logger = logger;
-            _executeService = executeService;
+            _commandExecuteService = executeService;
             _messageSendingService = messageSendingService;
         }
 
@@ -28,30 +27,29 @@ namespace TelegramBotWebhook.Services
                 return;
             }
 
-            var splitedText = messageText.Split(' ');
-
             ExecuteResult result;
-            if (splitedText.First().Contains('/') && splitedText.Count() == 1)
+            if (IsCommandOnly(messageText))
             {
-                string command = splitedText.First();
+                string command = messageText.Split(' ').First();
 
                 _logger.LogInformation($"Get the command {command} from {user.FirstName} {user.LastName}(ID:{user.Id}) {update.Message.Date}.");
 
-                result = _executeService.ExecuteCommand(command, user.Id).Result;
+                result = _commandExecuteService.ExecuteCommand(command, user.Id).Result;
             }
-            else if (_executeService.ExecuteIsOver())
+            else if (_commandExecuteService.IsExecuteOver())
             {
                 _logger.LogInformation($"Get a text message from {user.FirstName} {user.LastName}(ID:{user.Id}) {update.Message.Date}.");
 
-                result = _executeService.ExecuteCommand("/start", user.Id).Result;
+                result = _commandExecuteService.ExecuteCommand("/start", user.Id).Result;
             }
             else
             {
-                result = _executeService.HandleResponse(messageText, user.Id).Result;
+                result = _commandExecuteService.HandleResponse(messageText, user.Id).Result;
             }
 
             Chat chat = new Chat(update.Message.Chat.Id);
             await _messageSendingService.SendMessage(chat, result);
         }
+        private bool IsCommandOnly(string message) => message.Split(' ').First().Contains('/') && message.Split(' ').Count() == 1;
     }
 }

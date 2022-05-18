@@ -7,7 +7,7 @@ namespace TelegramBotWebhook.Controllers
     public class BotController : Controller
     {
         [HttpPost]
-        public async Task<IActionResult> WebhookPost([FromBody] Update update, [FromServices] UpdateHandleService updateHandleService, [FromServices] ISessionService sessionService)
+        public async Task<IActionResult> WebhookPost([FromBody] Update update, [FromServices] UpdateHandleService updateHandleService, [FromServices] MPEIEmailSessionService sessionService)
         {
             sessionService.StartSession(update.Message!.From!.Id);
             

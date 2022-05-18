@@ -11,41 +11,42 @@ namespace TelegramBotWebhook.HtmlParsers
         {
             IElement? letterHead = htmlDocument.QuerySelector("table.msgHd");
 
-            IElement? letterBody = htmlDocument.QuerySelector("td.bdy");
-
             var letterBuilder = LessonLetter.CreateBuilder();
-            if (letterBody is null || letterHead is null)
+            if (letterHead is null)
             {
                 return letterBuilder.Build();
             }
 
-            letterBuilder = SetInfoFromHead(letterHead, letterBuilder);
+            Task.WaitAll(SetInfoFromHead(letterBuilder, letterHead));
 
             return letterBuilder.Build();
         }
-        private LessonLetter.LessonLetterBuilder SetInfoFromHead(IElement letterHead, LessonLetter.LessonLetterBuilder letterBuilder)
+        private async Task SetInfoFromHead(LessonLetter.LessonLetterBuilder letterBuilder, IElement letterHead)
         {
-            string teacher = letterHead.QuerySelectorAll("span")
+            var teacher = Task.Run(() => letterHead.QuerySelectorAll("span").AsParallel()
                 .Where((span) => span.ClassName == "rwRRO" && span.HasChildNodes)
-                .Select((span) => span.Text()).First();
+                .Select((span) => span.Text()).First());
 
-            var infoElements = letterHead.QuerySelectorAll("td.hdmtxt")
-                .Skip(1).SkipLast(1);
+            string strLessonDate = string.Empty, sessionLink = string.Empty;
+            Parallel.ForEach(letterHead.QuerySelectorAll("td.hdmtxt"), (elem) =>
+            {
+                string text = elem.Text();
 
-            string strLessonDate = infoElements.First()
-                .Text()
-                .Split('-').First();
+                if (text.Contains("https"))
+                {
+                    sessionLink = text;
+                }
+                else if (text.Contains("г."))
+                {
+                    strLessonDate = text.Split('-').First();
+                }
+            });
+
             DateTime lessonDate = DateTime.ParseExact(strLessonDate, "d MMMM yyyy г. H:mm", CultureInfo.GetCultureInfo("ru-RU"));
 
-            string sessionLink = infoElements.Last().Text();
-
-            return letterBuilder.Teacher(teacher)
-                                .LessonStartDate(lessonDate)
-                                .SessionLink(sessionLink);
+            letterBuilder.Teacher(await teacher)
+                .LessonStartDate(lessonDate)
+                .SessionLink(sessionLink);
         }
-        //private LessonLetter.LessonLetterBuilder SetInfoFromBody(IElement letterBody, LessonLetter.LessonLetterBuilder letterBuilder)
-        //{
-
-        //}
     }
 }
