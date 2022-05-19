@@ -37,24 +37,50 @@ namespace TelegramBotWebhook.Command.BotCommand
             var lessonLetters = _emailLetterReadService!.ReadLetters(
                 Session,
                 (await letterRecords)
-                    .Where((letter) => letter.Type == "IPM.Schedule.Meeting.Request"));
+                    .Where((letterRecord) => (letterRecord.Type == "IPM.Schedule.Meeting.Request"
+                                              || letterRecord.From.Contains("messenger@webex"))
+                                              && !letterRecord.Theme.Contains("Присоединяйтесь")
+                                              && !letterRecord.Theme.Contains("Напоминание")
+                                              && !letterRecord.Theme.Contains("Сеанс обучения отменен")));
 
-            return new ExecuteResult(ResultType.Text, MakeResultMessage(await lessonLetters));
-        }
-        private StringBuilder MakeResultMessage(IEnumerable<LessonLetter> lessonLetters)
-        {
+            if ((await lessonLetters).Count() == 0)
+            {
+                return new ExecuteResult(ResultType.Text, "Писем с приглашением на занятие не найдено.");
+            }
+
             StringBuilder resultMessage = new StringBuilder("Письма с приглашением на занятие: \n");
+
+            AppendLessonLetters(
+                resultMessage, 
+                (await lessonLetters)
+                    .Where((lessonLetters) => lessonLetters.SessionLink != String.Empty 
+                                              && lessonLetters.LessonStartDate > DateTime.Now.AddHours(-1).AddMinutes(-30))
+                    .OrderByDescending(lessonLetter => lessonLetter.LessonStartDate));
+
+            return new ExecuteResult(ResultType.Text, resultMessage);
+        }
+        private void AppendLessonLetters(StringBuilder resultMessage, IEnumerable<LessonLetter> lessonLetters)
+        {
+            if (IsCurrentLesson(lessonLetters.First()))
+            {
+                resultMessage.AppendLine("<b>Текущее занятие<b>");
+            }
 
             foreach (var lessonLetter in lessonLetters)
             {
+                
                 resultMessage.AppendLine(lessonLetter.Teacher)
                     .AppendLine(lessonLetter.LessonStartDate.ToString())
-                    .AppendLine(lessonLetter.SessionLink)
-                    .AppendLine(lessonLetter.SessionNumber.ToString())
-                    .AppendLine(lessonLetter.SessionPassword);
-            }
+                    .AppendLine(lessonLetter.SessionLink);
+                
+                if (lessonLetter.SessionNumber != String.Empty && lessonLetter.SessionPassword != String.Empty)
+                {
+                    resultMessage.AppendFormat("{0} | {1}\n", lessonLetter.SessionNumber, lessonLetter.SessionPassword);
+                }
 
-            return resultMessage;
+                resultMessage.AppendLine("--------------------------------");
+            }
         }
+        private bool IsCurrentLesson(LessonLetter lessonLetter) => lessonLetter.LessonStartDate < DateTime.Now && DateTime.Now < lessonLetter.LessonStartDate.AddHours(1).AddMinutes(30);
     }
 }

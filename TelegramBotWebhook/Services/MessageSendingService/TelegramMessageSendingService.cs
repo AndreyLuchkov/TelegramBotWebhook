@@ -1,5 +1,6 @@
 ﻿using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using TelegramBotWebhook.Extensions;
 
@@ -37,7 +38,8 @@ namespace TelegramBotWebhook.Services
             await botClient.SendTextMessageAsync(
                 chatId: chatId,
                 text: text ?? "",
-                replyMarkup: replyMarkup);
+                replyMarkup: replyMarkup,
+                parseMode: ParseMode.Html);
         }
         private async Task SendMessageWithKeyboard(long chatId, string text, string[] values)
         {

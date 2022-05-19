@@ -15,18 +15,28 @@ namespace TelegramBotWebhook.Services
 
         public async Task<LessonLetter> ReadLetter(Session session, LetterRecord letterRecord)
         {
-            if (letterRecord.Type != "IPM.Schedule.Meeting.Request")
+            if (letterRecord.Type != "IPM.Schedule.Meeting.Request" && !letterRecord.From.Contains("messenger@webex"))
             {
-                throw new ArgumentException("The letter record with a wrong type property.");
+                return LessonLetter.CreateBuilder().Build();
+            } 
+            else
+            {
+                var response = _httpWorker.SendLetterContentRequest(session, letterRecord);
+
+                IParser<LessonLetter> letterParser;
+                if (letterRecord.Type != "IPM.Schedule.Meeting.Request" && letterRecord.From.Contains("messenger@webex"))
+                {
+                    letterParser = new BrokedLessonLetterParser();
+                }
+                else
+                {
+                    letterParser = new LessonLetterParser();
+                }
+
+                LessonLetter letter = letterParser.Parse(await response);
+
+                return letter;
             }
-            
-            var response = _httpWorker.SendLetterContentRequest(session, letterRecord);
-
-            LessonLetterParser letterContentParser = new();
-
-            LessonLetter letter = letterContentParser.Parse(await response);
-
-            return letter;
         }
         public async Task<IEnumerable<LessonLetter>> ReadLetters(Session session, IEnumerable<LetterRecord> letterRecords)
         {

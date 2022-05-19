@@ -5,13 +5,13 @@
         private string _teacher = String.Empty;
         private DateTime _lessonStartDate;
         private string _sessionLink = String.Empty;
-        private int _sessionNumber;
+        private string _sessionNumber = String.Empty;
         private string _sessionPassword = String.Empty;
 
         public string Teacher { get => _teacher; }
         public DateTime LessonStartDate { get => _lessonStartDate; }
         public string SessionLink { get => _sessionLink; }
-        public int SessionNumber { get => _sessionNumber; }
+        public string SessionNumber { get => _sessionNumber; }
         public string SessionPassword { get => _sessionPassword; }
 
         private LessonLetter() { }
@@ -45,14 +45,9 @@
                 _lessonLetter._sessionLink = link;
                 return this;
             }
-            public LessonLetterBuilder SessionNumber(int sessionNumber)
-            {
-                _lessonLetter._sessionNumber = sessionNumber;
-                return this;
-            }
             public LessonLetterBuilder SessionNumber(string sessionNumber)
             {
-                int.TryParse(sessionNumber, out _lessonLetter._sessionNumber);
+                _lessonLetter._sessionNumber = sessionNumber;
                 return this;
             }
             public LessonLetterBuilder SessionPassword(string sessionPassword) 

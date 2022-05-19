@@ -42,7 +42,8 @@ namespace TelegramBotWebhook.HtmlParsers
                 }
             });
 
-            DateTime lessonDate = DateTime.ParseExact(strLessonDate, "d MMMM yyyy г. H:mm", CultureInfo.GetCultureInfo("ru-RU"));
+            DateTime lessonDate;
+            DateTime.TryParseExact(strLessonDate, "d MMMM yyyy г. H:mm", CultureInfo.GetCultureInfo("ru-RU"), DateTimeStyles.None, out lessonDate);
 
             letterBuilder.Teacher(await teacher)
                 .LessonStartDate(lessonDate)
