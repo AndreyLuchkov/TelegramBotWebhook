@@ -4,6 +4,6 @@
     {
         public Task<TResult> ExecuteCommand(string command, long userId);
         public Task<TResult> HandleResponse(string response, long userId);
-        bool IsExecuteOver();
+        bool IsExecuteOver(long userId);
     }
 }

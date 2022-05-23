@@ -361,3 +361,8 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+*.Development.json
+/TelegramBotWebhook/Migrations/MPEISessionDbContextModelSnapshot.cs
+/TelegramBotWebhook/Migrations/20220523174737_InitialCreate.Designer.cs
+/TelegramBotWebhook/Migrations/20220523174737_InitialCreate.cs

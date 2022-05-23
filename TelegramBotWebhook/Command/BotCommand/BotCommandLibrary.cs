@@ -1,19 +1,22 @@
 ﻿namespace TelegramBotWebhook.Command.BotCommand
 {
-    static public class BotCommandLibrary
+    public class BotCommandLibrary
     {
-        static private readonly Dictionary<string, BotCommand> library = new Dictionary<string, BotCommand>
+        private readonly Dictionary<string, BotCommand> library = new Dictionary<string, BotCommand>
         {
             ["/help"] = new HelpCommand(),
-            ["/close"] = new CloseCommand(),
             ["/start"] = new StartCommand(),
             ["/unread"] = new UnreadCommand(),
             ["/lessons"] = new LessonsCommand(),
             ["/login"] = new LoginCommand(),
+            ["/settings"] = new SettingsCommand(),
+            [";mpeiaccount"] = new MPEIAccountCommand(),
+            [";mpeiaccountsave"] = new MPEIAccountSaveCommand(),
+            [";mpeiaccountunlog"] = new MPEIAccountUnlogCommand(),
         };
 
-        public static bool CommandExists(string command) => library.ContainsKey(command);
-        public static BotCommand GetCommandInstance(string command)
+        public bool CommandExists(string command) => library.ContainsKey(command);
+        public BotCommand GetCommandInstance(string command)
         {
             try
             {
@@ -24,6 +27,6 @@
                 throw new ArgumentException($"The command {command} not found in the library.");
             }
         }
-        public static string[] GetAllCommandNames() => library.Keys.ToArray();
+        public string[] GetAllCommandNames() => library.Keys.Where((commandName) => commandName.First() == '/').ToArray();
     }
 }

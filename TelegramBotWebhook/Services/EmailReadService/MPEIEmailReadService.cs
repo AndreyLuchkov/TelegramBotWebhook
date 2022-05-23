@@ -1,5 +1,4 @@
 ﻿using TelegramBotWebhook.HtmlParsers;
-using TelegramBotWebhook.Web.MPEIEmail;
 using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.Services
@@ -13,7 +12,7 @@ namespace TelegramBotWebhook.Services
             _httpWorker = httpWorker;
         }
 
-        public async Task<IEnumerable<LetterRecord>> GetLetters(Session session)
+        public async Task<IEnumerable<LetterRecord>> GetLetters(MPEISession session)
         {
             var response = _httpWorker.SendEmailPageRequest(session, 1);
            

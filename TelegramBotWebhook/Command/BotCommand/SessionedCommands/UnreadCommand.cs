@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using TelegramBotWebhook.Services;
-using TelegramBotWebhook.Web.MPEIEmail;
 using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 
 namespace TelegramBotWebhook.Command.BotCommand
@@ -9,7 +8,7 @@ namespace TelegramBotWebhook.Command.BotCommand
     {
         private IEmailReadService? _emailReadService;
 
-        internal UnreadCommand() : base("/unread") 
+        internal UnreadCommand() : base("/", "unread") 
         { 
             AddRequiredServiceType(typeof(IEmailReadService));
         }
@@ -23,11 +22,6 @@ namespace TelegramBotWebhook.Command.BotCommand
         }
         protected override async Task<ExecuteResult> ConcreteExecute(string option)
         {
-            if (Session!.UserKey is null)
-            {
-                return new ExecuteResult(ResultType.Text, "Для использования данной команды необходимо выполнить вход на почту МЭИ.\nВоспользуйтесь командой /login, чтобы войти на почту.");
-            }
-
             var letterRecords = (await _emailReadService!.GetLetters(Session))
                 .Where((letter) => !letter.IsRead);
 
@@ -50,7 +44,8 @@ namespace TelegramBotWebhook.Command.BotCommand
             foreach (var letter in letters)
             {
                 lettersInfo.AppendLine(LetterRecord.FromTrimDots(letter.From))
-                    .AppendLine($"{letter.Theme} \n{letter.ReceivingTime.ToString("g")}\n");
+                           .AppendLine($"{letter.Theme} \n{letter.ReceivingTime.ToString("g")}")
+                           .AppendLine("--------------------------------");
             }
 
             return lettersInfo;

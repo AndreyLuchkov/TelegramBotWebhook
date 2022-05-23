@@ -1,7 +1,6 @@
 ﻿using TelegramBotWebhook.HtmlParsers;
 using TelegramBotWebhook.Web.MPEIEmail;
 using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
-
 namespace TelegramBotWebhook.Services
 {
     public class LessonLetterReadService : IEmailLetterReadService<LessonLetter>
@@ -13,7 +12,7 @@ namespace TelegramBotWebhook.Services
             _httpWorker = httpWorker;
         }
 
-        public async Task<LessonLetter> ReadLetter(Session session, LetterRecord letterRecord)
+        public async Task<LessonLetter> ReadLetter(MPEISession session, LetterRecord letterRecord)
         {
             if (letterRecord.Type != "IPM.Schedule.Meeting.Request" && !letterRecord.From.Contains("messenger@webex"))
             {
@@ -38,7 +37,7 @@ namespace TelegramBotWebhook.Services
                 return letter;
             }
         }
-        public async Task<IEnumerable<LessonLetter>> ReadLetters(Session session, IEnumerable<LetterRecord> letterRecords)
+        public async Task<IEnumerable<LessonLetter>> ReadLetters(MPEISession session, IEnumerable<LetterRecord> letterRecords)
         {
             Task<LessonLetter>[] lessonLetters = letterRecords.Select((letterRecord) => ReadLetter(session, letterRecord)).ToArray();
             

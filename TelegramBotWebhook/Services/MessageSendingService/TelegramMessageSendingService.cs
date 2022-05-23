@@ -24,6 +24,7 @@ namespace TelegramBotWebhook.Services
                 ResultType.Text => SendTextMessage(chat.Id, options.Message!, options.RemoveKeyboard),
                 ResultType.Keyboard => SendMessageWithKeyboard(chat.Id, options.Message!, options.Values!),
                 ResultType.InlineKeyboarUrl => SendMessageWithInlineKeyboardUrl(chat.Id, options.Message!, options.Values!),
+                ResultType.InlineKeyboardWithCallback => SendMessageWithInlineKeyboard(chat.Id, options.Message!, options.InlineKeyboardMarkup),
                 ResultType.RemoveKeyboard => RemoveKeyboard(chat.Id),
                 _ => throw new Exception()
             };
@@ -41,19 +42,14 @@ namespace TelegramBotWebhook.Services
                 replyMarkup: replyMarkup,
                 parseMode: ParseMode.Html);
         }
-        private async Task SendMessageWithKeyboard(long chatId, string text, string[] values)
+        private async Task SendMessageWithKeyboard(long chatId, string text, ReplyKeyboardMarkup keyboardMarkup)
         {
-            var buttons = values.Select((text) => new KeyboardButton(text));
-
-            var replyKeyboardMarkup = new ReplyKeyboardMarkup(buttons!.Split(2))
-            {
-                ResizeKeyboard = true
-            };
+            keyboardMarkup.ResizeKeyboard = true;
 
             lastMessageWithKeyboadrd = await botClient.SendTextMessageAsync(
             chatId: chatId,
             text: text,
-            replyMarkup: replyKeyboardMarkup);
+            replyMarkup: keyboardMarkup);
         }
         private async Task SendMessageWithInlineKeyboardUrl(long chatId, string text, string[] values)
         {
@@ -68,6 +64,13 @@ namespace TelegramBotWebhook.Services
                 chatId: chatId,
                 text: text,
                 replyMarkup: inlineKeyboard);
+        }
+        private async Task SendMessageWithInlineKeyboard(long chatId, string text, InlineKeyboardMarkup? keyboardMarkup)
+        {
+            await botClient.SendTextMessageAsync(
+                chatId: chatId,
+                text: text,
+                replyMarkup: keyboardMarkup);
         }
         private async Task RemoveKeyboard(long chatId)
         {

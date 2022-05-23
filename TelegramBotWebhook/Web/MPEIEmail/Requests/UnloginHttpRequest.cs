@@ -4,14 +4,16 @@ namespace TelegramBotWebhook.Web.MPEIEmail.Requests
 {
     public class UnloginHttpRequest : MPEIEmailHttpRequest
     {
-        private Session? Session { get; set; }
+        private MPEISession? Session { get; set; }
 
-        public UnloginHttpRequest(IPollingClient pollingClient) : base(pollingClient) { }
+        public UnloginHttpRequest(IPollingClient pollingClient) : base(pollingClient) 
+        {
+        }
 
         protected override void GetOptions(HttpRequestOptions options)
         {
-            Session? session;
-            options.TryGetValue(new HttpRequestOptionsKey<Session>("session"), out session);
+            MPEISession? session;
+            options.TryGetValue(new HttpRequestOptionsKey<MPEISession>("session"), out session);
 
             if (session is null)
                 throw new Exception("The request options do not contain a session key.");

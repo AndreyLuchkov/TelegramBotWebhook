@@ -5,24 +5,27 @@ namespace TelegramBotWebhook.Services
 {
     public class BotCommandExecuteService : ICommandExecuteService<ExecuteResult>
     {
+        private readonly BotCommandLibrary _commandLibrary;
         private readonly IServiceProvider _services;
-        private ILongRunning? _runningCommand;
+        private readonly LongRunningCommandSaver _commandSaver;
 
-        public BotCommandExecuteService(IServiceProvider services)
+        public BotCommandExecuteService(IServiceProvider services, LongRunningCommandSaver commandSaver)
         {
+            _commandLibrary = new BotCommandLibrary();
             _services = services;
+            _commandSaver = commandSaver;
         }
 
         public async Task<ExecuteResult> ExecuteCommand(string command, long userId)
         {
             ExecuteResult result;
-            if (BotCommandLibrary.CommandExists(command))
+            if (_commandLibrary.CommandExists(command))
             {
-                BotCommand botCommand = BotCommandLibrary.GetCommandInstance(command);
+                BotCommand botCommand = _commandLibrary.GetCommandInstance(command);
 
                 if (botCommand is ILongRunning longRunningCommand)
                 {
-                    _runningCommand = longRunningCommand;
+                    _commandSaver.AddRunnningCommand(userId, longRunningCommand);
                 }
                 if (botCommand is IServiceRequired serviceRequiredCommand)
                 {
@@ -36,7 +39,7 @@ namespace TelegramBotWebhook.Services
                 result = new ExecuteResult(ResultType.Text, "Команда не найдена. Воспользуйтесь /help, чтобы получить список доступных команд.");
             }
             
-            if (_runningCommand is not null)
+            if (_commandSaver.ContainsCommand(userId))
                 result.RemoveKeyboard = false;
 
             return result;
@@ -50,14 +53,15 @@ namespace TelegramBotWebhook.Services
         }
         public async Task<ExecuteResult> HandleResponse(string response, long userId)
         {
-            if (IsExecuteOver())
-                throw new Exception("No running command to receive and handle the response.");
+            if (IsExecuteOver(userId))
+                throw new Exception("No running command for this user to receive and handle the response.");
 
-            _runningCommand!.ExecuteIsOver += ClearRunningCommand;
+            var runningCommand = _commandSaver.GetRunningCommand(userId);
 
-            return await _runningCommand!.Execute(response);
+            runningCommand.ExecuteIsOver += () => _commandSaver.RemoveCommand(userId);
+
+            return await runningCommand.Execute(response);
         }
-        private void ClearRunningCommand() => _runningCommand = null;
-        public bool IsExecuteOver() => _runningCommand is null;
+        public bool IsExecuteOver(long userId) => !_commandSaver.ContainsCommand(userId);
     }
 }

@@ -4,13 +4,14 @@ namespace TelegramBotWebhook.Command.BotCommand
 {
     public class StartCommand : BotCommand
     {
-        internal StartCommand() : base("/start") { }
+        internal StartCommand() : base("start") { }
 
         public override Task<ExecuteResult> Execute(string _)
         {
             StringBuilder resultMessage = new StringBuilder("Используйте эти команды, чтобы контролировать бота: \n");
 
-            var commandsNames = BotCommandLibrary.GetAllCommandNames()
+            BotCommandLibrary commandLibrary = new();
+            var commandsNames = commandLibrary.GetAllCommandNames()
                 .Where((name) => name != "/help" && name != "/start");
 
             foreach (var commandName in commandsNames)

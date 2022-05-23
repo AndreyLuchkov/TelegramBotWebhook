@@ -3,13 +3,13 @@ using Telegram.Bot.Types.Enums;
 
 namespace TelegramBotWebhook.Services
 {
-    public class UpdateHandleService 
+    public class UpdateMessageHandleService 
     {
-        private readonly ILogger<UpdateHandleService> _logger;
+        private readonly ILogger<UpdateMessageHandleService> _logger;
         private readonly ICommandExecuteService<ExecuteResult> _commandExecuteService;
         private readonly IMessageSendingService<ExecuteResult> _messageSendingService;
 
-        public UpdateHandleService(ILogger<UpdateHandleService> logger, ICommandExecuteService<ExecuteResult> executeService, IMessageSendingService<ExecuteResult> messageSendingService)
+        public UpdateMessageHandleService(ILogger<UpdateMessageHandleService> logger, ICommandExecuteService<ExecuteResult> executeService, IMessageSendingService<ExecuteResult> messageSendingService)
         {
             _logger = logger;
             _commandExecuteService = executeService;
@@ -36,7 +36,7 @@ namespace TelegramBotWebhook.Services
 
                 result = _commandExecuteService.ExecuteCommand(command, user.Id).Result;
             }
-            else if (_commandExecuteService.IsExecuteOver())
+            else if (_commandExecuteService.IsExecuteOver(user.Id))
             {
                 _logger.LogInformation($"Get a text message from {user.FirstName} {user.LastName}(ID:{user.Id}) {update.Message.Date}.");
 

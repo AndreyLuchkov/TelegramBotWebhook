@@ -2,6 +2,7 @@
 using TelegramBotWebhook.Web.MPEIEmail.EmailEntities;
 using TelegramBotWebhook.Services;
 using TelegramBotWebhook.Web;
+using Microsoft.EntityFrameworkCore;
 
 namespace TelegramBotWebhook
 {
@@ -39,6 +40,9 @@ namespace TelegramBotWebhook
         {
             services.AddHostedService<ConfigureWebHook>();
 
+            services.AddDbContext<MPEISessionDbContext>(options
+                => options.UseSqlServer(Configuration.GetConnectionString("SqlServer")));
+
             services.AddHttpClient("MPEIEmail")
                 .AddTypedClient <IPollingClient, MPEIEmailPollingClient>();
 
@@ -48,7 +52,9 @@ namespace TelegramBotWebhook
             
             services.AddSingleton<IMessageSendingService<ExecuteResult>, TelegramMessageSendingService>();
 
-            services.AddSingleton<ICommandExecuteService<ExecuteResult>, BotCommandExecuteService>();
+            services.AddSingleton<TelegramMessageEditService>();
+
+            services.AddSingleton<LongRunningCommandSaver>();
 
             services.AddTransient<HttpFactories>();
 
@@ -60,9 +66,13 @@ namespace TelegramBotWebhook
 
             services.AddTransient<IEmailLetterReadService<LessonLetter>, LessonLetterReadService>();
 
-            services.AddTransient<MPEIEmailSessionService>();
+            services.AddScoped<ICommandExecuteService<ExecuteResult>, BotCommandExecuteService>();
 
-            services.AddScoped<UpdateHandleService>();
+            services.AddScoped<ISessionService<MPEISession>, MPEISession.MPEISessionService>();
+
+            services.AddScoped<UpdateCallBackQueryHandleService>();
+
+            services.AddScoped<UpdateMessageHandleService>();
 
             services.AddControllers().AddNewtonsoftJson();
         }

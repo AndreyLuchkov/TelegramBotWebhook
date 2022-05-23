@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using Telegram.Bot.Types.ReplyMarkups;
+using TelegramBotWebhook.Extensions;
 
 namespace TelegramBotWebhook.Command.BotCommand
 {
@@ -9,7 +11,7 @@ namespace TelegramBotWebhook.Command.BotCommand
 
         public event Action? ExecuteIsOver;
 
-        internal CloseCommand() : base("/close") 
+        internal CloseCommand() : base("close") 
         {
             _allowedProcessesToClose = new Dictionary<string, string>
             {
@@ -30,7 +32,11 @@ namespace TelegramBotWebhook.Command.BotCommand
                 }
                 else
                 {
-                    return new ExecuteResult(ResultType.Keyboard, "Выберите процесс, который хотите закрыть.", processesToClose);
+                    return new ExecuteResult(ResultType.Keyboard, "Выберите процесс, который хотите закрыть.")
+                    {
+                        ReplyKeyboardMarkup = new ReplyKeyboardMarkup(processesToClose.Split(3)
+                                                                                        .Select(textRow => textRow.Select(text => new KeyboardButton(text))))
+                    };
                 }
             }
             else if (option != String.Empty && processToCloseName is null)
@@ -39,7 +45,10 @@ namespace TelegramBotWebhook.Command.BotCommand
                 {
                     processToCloseName = _allowedProcessesToClose.Where((pair) => pair.Value == option)
                                                                     .Select((pair) => pair.Key).First();
-                    return new ExecuteResult(ResultType.Keyboard, $"Вы действительно хотите закрыть процесс {option}?", new string[] { "Да", "Нет" });
+                    return new ExecuteResult(ResultType.Keyboard, $"Вы действительно хотите закрыть процесс {option}?") 
+                    { 
+                        ReplyKeyboardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton("Да"), new KeyboardButton("Нет") })
+                    };
                 }
                 else
                 {

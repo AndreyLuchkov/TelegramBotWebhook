@@ -9,7 +9,7 @@ namespace TelegramBotWebhook.Command.BotCommand
         private IEmailReadService? _emailReadService;
         private IEmailLetterReadService<LessonLetter>? _emailLetterReadService;
 
-        internal LessonsCommand() : base("/lessons")
+        internal LessonsCommand() : base("/", "lessons")
         {
             AddRequiredServiceTypes(new[] { typeof(IEmailReadService), typeof(IEmailLetterReadService<LessonLetter>) });
         }
@@ -27,11 +27,6 @@ namespace TelegramBotWebhook.Command.BotCommand
         }
         protected override async Task<ExecuteResult> ConcreteExecute(string option)
         {
-            if (Session!.UserKey is null)
-            {
-                return new ExecuteResult(ResultType.Text, "Для использования данной команды необходимо выполнить вход на почту МЭИ.\nВоспользуйтесь командой /login, чтобы войти на почту.");
-            }
-
             var letterRecords = _emailReadService!.GetLetters(Session);
 
             var lessonLetters = _emailLetterReadService!.ReadLetters(
@@ -43,7 +38,11 @@ namespace TelegramBotWebhook.Command.BotCommand
                                               && !letterRecord.Theme.Contains("Напоминание")
                                               && !letterRecord.Theme.Contains("Сеанс обучения отменен")));
 
-            if ((await lessonLetters).Count() == 0)
+            var actualLessonLetters = (await lessonLetters)
+                                        .Where((lessonLetters) => lessonLetters.SessionLink != String.Empty
+                                                                  && lessonLetters.LessonStartDate > DateTime.Now.AddHours(-1).AddMinutes(-30));
+
+            if (actualLessonLetters.Count() == 0)
             {
                 return new ExecuteResult(ResultType.Text, "Писем с приглашением на занятие не найдено.");
             }
@@ -52,9 +51,7 @@ namespace TelegramBotWebhook.Command.BotCommand
 
             AppendLessonLetters(
                 resultMessage, 
-                (await lessonLetters)
-                    .Where((lessonLetters) => lessonLetters.SessionLink != String.Empty 
-                                              && lessonLetters.LessonStartDate > DateTime.Now.AddHours(-1).AddMinutes(-30))
+                actualLessonLetters
                     .OrderByDescending(lessonLetter => lessonLetter.LessonStartDate));
 
             return new ExecuteResult(ResultType.Text, resultMessage);
@@ -63,7 +60,7 @@ namespace TelegramBotWebhook.Command.BotCommand
         {
             if (IsCurrentLesson(lessonLetters.First()))
             {
-                resultMessage.AppendLine("<b>Текущее занятие<b>");
+                resultMessage.AppendLine("<b>Текущее занятие</b>");
             }
 
             foreach (var lessonLetter in lessonLetters)

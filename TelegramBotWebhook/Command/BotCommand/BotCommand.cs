@@ -7,7 +7,11 @@
 
         protected BotCommand(string? text)
         {
-            Text = text?.TrimStart('/');
+            Text = text;
+        }
+        protected BotCommand(string prefix, string? text) : this(text)
+        {
+            Prefix = prefix;
         }
 
         public abstract Task<ExecuteResult> Execute(string option);

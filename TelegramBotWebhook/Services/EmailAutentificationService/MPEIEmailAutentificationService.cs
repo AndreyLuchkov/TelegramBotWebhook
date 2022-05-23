@@ -1,5 +1,4 @@
-﻿using TelegramBotWebhook.Web.MPEIEmail;
-using TelegramBotWebhook.HtmlParsers;
+﻿using TelegramBotWebhook.HtmlParsers;
 
 namespace TelegramBotWebhook.Services
 {
@@ -12,11 +11,11 @@ namespace TelegramBotWebhook.Services
             _httpWorker = httpWorker;
         }
 
-        public async Task<bool> TryAutentificate(Session session)
+        public async Task<bool> TryAutentificate(MPEISession session)
         {
             if (session.Login is null || session.Password is null)
             {
-                throw new NullReferenceException("Session login or password property is null.");
+                return false;
             }
             
             var response = _httpWorker.SendLoginRequest(session);
@@ -25,9 +24,11 @@ namespace TelegramBotWebhook.Services
 
             session.UnlogKey = parser.Parse(await response);
 
+            session.UserKey = _httpWorker.SetCookieValues.FirstOrDefault();
+
             return session.UserKey is not null && session.UnlogKey != String.Empty;
         }
-        public async Task<bool> TryUnlogin(Session session)
+        public async Task<bool> TryUnlogin(MPEISession session)
         {
             var response = _httpWorker.SendUnloginRequest(session);
 
